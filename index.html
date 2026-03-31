@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vexa Messenger — стикеры и эмодзи</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -287,23 +286,10 @@
             cursor: pointer;
             font-weight: bold;
         }
-        .emoji-picker {
-            position: absolute;
-            bottom: 80px;
-            right: 20px;
-            z-index: 1000;
-            display: none;
-            max-width: 350px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            border-radius: 16px;
-        }
-        .emoji-picker.show {
-            display: block;
-        }
         .sticker-panel {
             position: absolute;
             bottom: 80px;
-            right: 80px;
+            right: 20px;
             background: white;
             border-radius: 16px;
             padding: 12px;
@@ -414,7 +400,6 @@
         @media (max-width: 768px) {
             .sidebar { width: 280px; }
             .message-bubble { max-width: 85%; }
-            .emoji-picker { max-width: 300px; right: 10px; }
             .sticker-panel { right: 10px; }
         }
     </style>
@@ -461,11 +446,10 @@
             <div style="text-align: center; color: #999; margin-top: 50px;">👋 Добро пожаловать в Vexa!</div>
         </div>
         <div class="message-input-container" id="messageInputContainer" style="display: none;">
-            <button class="emoji-button" id="emojiButton" onclick="toggleEmojiPicker()">😊</button>
+            <button class="emoji-button" id="emojiButton" onclick="toggleStickerPanel()">😊</button>
             <input type="text" class="message-input" placeholder="Введите сообщение..." id="messageInput">
             <button class="send-button" onclick="sendMessage()">📤 Отправить</button>
         </div>
-        <div id="emojiPickerContainer" class="emoji-picker"></div>
         <div id="stickerPanel" class="sticker-panel">
             <div class="sticker" onclick="addSticker('🚀')">🚀</div>
             <div class="sticker" onclick="addSticker('💜')">💜</div>
@@ -566,9 +550,7 @@
     </div>
 </div>
 
-<script type="module">
-    import EmojiPicker from 'https://unpkg.com/emoji-picker-element@1.20.0/index.js';
-
+<script>
     const API_URL = 'https://vexa-backend-fqdy.onrender.com/api';
 
     let currentUser = null;
@@ -578,34 +560,10 @@
     let pollInterval = null;
     let currentTab = 'chats';
     let userStatuses = {};
-    let emojiPicker = null;
-
-    function initEmojiPicker() {
-        const pickerContainer = document.getElementById('emojiPickerContainer');
-        emojiPicker = new EmojiPicker();
-        pickerContainer.appendChild(emojiPicker);
-
-        emojiPicker.addEventListener('emoji-click', event => {
-            const emoji = event.detail.unicode;
-            const input = document.getElementById('messageInput');
-            input.value += emoji;
-            input.focus();
-            toggleEmojiPicker();
-        });
-    }
-
-    window.toggleEmojiPicker = function() {
-        const picker = document.getElementById('emojiPickerContainer');
-        const stickerPanel = document.getElementById('stickerPanel');
-        picker.classList.toggle('show');
-        stickerPanel.classList.remove('show');
-    }
 
     window.toggleStickerPanel = function() {
         const stickerPanel = document.getElementById('stickerPanel');
-        const picker = document.getElementById('emojiPickerContainer');
         stickerPanel.classList.toggle('show');
-        picker.classList.remove('show');
     }
 
     window.addSticker = function(sticker) {
@@ -1068,15 +1026,6 @@
             await fetch(`${API_URL}/auth/logout`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } });
         }
     });
-
-    initEmojiPicker();
-
-    const emojiButton = document.getElementById('emojiButton');
-    const stickerBtn = document.createElement('button');
-    stickerBtn.className = 'emoji-button';
-    stickerBtn.innerHTML = '🎨';
-    stickerBtn.onclick = () => toggleStickerPanel();
-    emojiButton.parentNode.insertBefore(stickerBtn, emojiButton.nextSibling);
 </script>
 </body>
 </html>
