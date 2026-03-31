@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vexa Messenger — стикеры и эмодзи</title>
-    <!-- Библиотека эмодзи (CSS и JS) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.css">
-    <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.js"></script>
     <style>
-        /* (весь стиль такой же, как в предыдущей версии — я не буду его менять) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -570,11 +567,9 @@
 </div>
 
 <script type="module">
-    // Правильный импорт эмодзи-пикера
-    import EmojiPicker from 'https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.js';
+    import EmojiPicker from 'https://unpkg.com/emoji-picker-element@1.20.0/index.js';
 
-    // ===== URL БЭКЕНДА (замени на свой, если нужно) =====
-    const API_URL = 'https://vexa-backend-fqdy.onrender.com/api';  // Убедись, что это твой актуальный адрес
+    const API_URL = 'https://vexa-backend-fqdy.onrender.com/api';
 
     let currentUser = null;
     let users = [];
@@ -585,7 +580,6 @@
     let userStatuses = {};
     let emojiPicker = null;
 
-    // Инициализация эмодзи-пикера
     function initEmojiPicker() {
         const pickerContainer = document.getElementById('emojiPickerContainer');
         emojiPicker = new EmojiPicker();
@@ -636,7 +630,6 @@
         return json;
     }
 
-    // ========== АВТОРИЗАЦИЯ ==========
     window.login = async function() {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
@@ -1076,10 +1069,8 @@
         }
     });
 
-    // Запускаем эмодзи-пикер после загрузки страницы
     initEmojiPicker();
 
-    // Добавляем кнопку для стикеров рядом с эмодзи
     const emojiButton = document.getElementById('emojiButton');
     const stickerBtn = document.createElement('button');
     stickerBtn.className = 'emoji-button';
