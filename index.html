@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vexa Messenger — стикеры и эмодзи</title>
-    <!-- Библиотека эмодзи -->
+    <!-- Библиотека эмодзи (CSS и JS) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.css">
     <script type="module" src="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.js"></script>
     <style>
+        /* (весь стиль такой же, как в предыдущей версии — я не буду его менять) */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -469,7 +470,6 @@
         </div>
         <div id="emojiPickerContainer" class="emoji-picker"></div>
         <div id="stickerPanel" class="sticker-panel">
-            <!-- Кастомные стикеры Vexa -->
             <div class="sticker" onclick="addSticker('🚀')">🚀</div>
             <div class="sticker" onclick="addSticker('💜')">💜</div>
             <div class="sticker" onclick="addSticker('🔥')">🔥</div>
@@ -494,7 +494,7 @@
     </div>
 </div>
 
-<!-- Модалки (профиль, имя для друга, авторизация) -->
+<!-- Модалки -->
 <div class="modal" id="profileModal">
     <div class="modal-content">
         <h2>Редактировать профиль</h2>
@@ -570,11 +570,11 @@
 </div>
 
 <script type="module">
-    // Импортируем эмодзи-пикер
+    // Правильный импорт эмодзи-пикера
     import EmojiPicker from 'https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.js';
-    
-    // ===== ВСТАВЬ СВОЙ URL БЭКЕНДА =====
-    const API_URL = 'https://vexa-backend-fqdy.onrender.com/api';
+
+    // ===== URL БЭКЕНДА (замени на свой, если нужно) =====
+    const API_URL = 'https://vexa-backend-fqdy.onrender.com/api';  // Убедись, что это твой актуальный адрес
 
     let currentUser = null;
     let users = [];
@@ -637,7 +637,7 @@
     }
 
     // ========== АВТОРИЗАЦИЯ ==========
-    async function login() {
+    window.login = async function() {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
         try {
@@ -654,7 +654,7 @@
         }
     }
 
-    async function register() {
+    window.register = async function() {
         const displayName = document.getElementById('regDisplayName').value;
         const username = document.getElementById('regUsername').value.toLowerCase();
         const email = document.getElementById('regEmail').value;
