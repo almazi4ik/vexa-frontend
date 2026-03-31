@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Vexa Messenger — стикеры и эмодзи</title>
     <style>
+        /* Весь старый стиль оставляем без изменений */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -510,46 +511,6 @@
     </div>
 </div>
 
-<div class="modal active" id="authModal">
-    <div class="modal-content">
-        <h2 id="authTitle">Вход в Vexa</h2>
-        <div id="loginForm">
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="loginEmail">
-            </div>
-            <div class="form-group">
-                <label>Пароль</label>
-                <input type="password" id="loginPassword">
-            </div>
-            <button class="btn-primary" onclick="login()">Войти</button>
-            <button class="btn-secondary" onclick="showRegister()">Создать аккаунт</button>
-        </div>
-        <div id="registerForm" style="display: none;">
-            <div class="form-group">
-                <label>Отображаемое имя</label>
-                <input type="text" id="regDisplayName">
-            </div>
-            <div class="form-group">
-                <label>Username (@уникальный)</label>
-                <input type="text" id="regUsername">
-            </div>
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" id="regEmail">
-            </div>
-            <div class="form-group">
-                <label>Пароль</label>
-                <input type="password" id="regPassword">
-            </div>
-            <button class="btn-primary" onclick="register()">Зарегистрироваться</button>
-            <button class="btn-secondary" onclick="showLogin()">Уже есть аккаунт? Войти</button>
-        </div>
-        <div id="authError" class="error-message"></div>
-        <div style="font-size: 11px; text-align: center; margin-top: 15px; color: #666;">📧 Email должен быть настоящим (name@mail.com)</div>
-    </div>
-</div>
-
 <script>
     const API_URL = 'https://vexa-backend-fqdy.onrender.com/api';
 
@@ -588,6 +549,31 @@
         return json;
     }
 
+    // Проверка, залогинен ли пользователь при загрузке
+    const saved = localStorage.getItem('vexa_user');
+    if (saved) {
+        try {
+            currentUser = JSON.parse(saved);
+            // Проверим, жив ли токен
+            fetch(`${API_URL}/users`, {
+                headers: { 'Authorization': `Bearer ${currentUser.token}` }
+            }).then(res => {
+                if (res.status === 401) {
+                    localStorage.removeItem('vexa_user');
+                    window.location.reload();
+                } else {
+                    document.getElementById('authModal').classList.remove('active');
+                    loadData().then(() => { updateUI(); startPolling(); });
+                }
+            });
+        } catch(e) {
+            localStorage.removeItem('vexa_user');
+        }
+    } else {
+        // Показываем модалку авторизации
+        document.getElementById('authModal').classList.add('active');
+    }
+
     window.login = async function() {
         const email = document.getElementById('loginEmail').value;
         const password = document.getElementById('loginPassword').value;
@@ -601,7 +587,7 @@
             startPolling();
             updateUI();
         } catch (err) {
-            document.getElementById('authError').innerText = err.message;
+            alert('Ошибка входа: ' + err.message);
         }
     }
 
@@ -620,7 +606,7 @@
             startPolling();
             updateUI();
         } catch (err) {
-            document.getElementById('authError').innerText = err.message;
+            alert('Ошибка регистрации: ' + err.message);
         }
     }
 
@@ -642,7 +628,7 @@
             messages = await apiRequest('/messages');
             const statusData = await apiRequest('/status');
             userStatuses = {};
-            statusData.forEach(u => { userStatuses[u.userID] = { isOnline: u.isOnline, lastSeen: u.lastSeen }; });
+            statusData.forEach(u => { userStatuses[u.userid] = { isOnline: u.isonline, lastSeen: u.lastseen }; });
             renderCurrentList();
             if (currentChatUser) renderMessages();
         } catch(e) { console.error(e); }
@@ -677,7 +663,7 @@
     }
 
     window.openProfileModal = function() {
-        document.getElementById('editDisplayName').value = currentUser.displayName;
+        document.getElementById('editDisplayName').value = currentUser.displayname || currentUser.displayName;
         document.getElementById('editUsername').value = currentUser.username;
         document.getElementById('editBio').value = currentUser.bio || '';
         const preview = document.getElementById('avatarPreview');
@@ -702,9 +688,9 @@
             avatarEl.innerText = '';
         } else {
             avatarEl.style.backgroundImage = '';
-            avatarEl.innerText = currentUser.displayName.charAt(0).toUpperCase();
+            avatarEl.innerText = (currentUser.displayname || currentUser.displayName).charAt(0).toUpperCase();
         }
-        document.getElementById('currentDisplayName').innerText = currentUser.displayName;
+        document.getElementById('currentDisplayName').innerText = currentUser.displayname || currentUser.displayName;
         document.getElementById('currentUsername').innerText = `@${currentUser.username}`;
     }
 
@@ -714,10 +700,10 @@
 
     window.toggleFriend = async function() {
         if (!currentChatUser) return;
-        const isFriendNow = isFriend(currentChatUser.userID);
+        const isFriendNow = isFriend(currentChatUser.userid);
         const action = isFriendNow ? 'remove' : 'add';
         try {
-            await apiRequest('/users/friends', 'POST', { friendId: currentChatUser.userID, action });
+            await apiRequest('/users/friends', 'POST', { friendId: currentChatUser.userid, action });
             await loadData();
             updateFriendButtons();
         } catch(err) { alert(err.message); }
@@ -725,13 +711,13 @@
 
     function updateFriendButtons() {
         if (!currentChatUser) return;
-        const isFriendNow = isFriend(currentChatUser.userID);
+        const isFriendNow = isFriend(currentChatUser.userid);
         document.getElementById('addFriendBtn').style.display = isFriendNow ? 'none' : 'inline-block';
         document.getElementById('removeFriendBtn').style.display = isFriendNow ? 'inline-block' : 'none';
     }
 
     window.openCustomNameModal = function() {
-        const currentName = currentUser.customNames?.[currentChatUser?.userID] || '';
+        const currentName = currentUser.customnames?.[currentChatUser?.userid] || '';
         document.getElementById('customNameInput').value = currentName;
         document.getElementById('customNameModal').classList.add('active');
     }
@@ -741,7 +727,7 @@
     window.saveCustomName = async function() {
         const customName = document.getElementById('customNameInput').value;
         try {
-            await apiRequest('/users/custom-name', 'POST', { friendId: currentChatUser.userID, customName });
+            await apiRequest('/users/custom-name', 'POST', { friendId: currentChatUser.userid, customName });
             await loadData();
             closeCustomNameModal();
             renderCurrentList();
@@ -750,36 +736,36 @@
     }
 
     function getDisplayNameForUser(user) {
-        if (user.userID === currentUser.userID) return user.displayName;
-        const customName = currentUser.customNames?.[user.userID];
+        if (user.userid === currentUser.userid) return user.displayname || user.displayName;
+        const customName = currentUser.customnames?.[user.userid];
         if (customName) return customName;
-        return user.displayName;
+        return user.displayname || user.displayName;
     }
 
     function getChats() {
-        const userMessages = messages.filter(m => m.from === currentUser.userID || m.to === currentUser.userID);
+        const userMessages = messages.filter(m => m.from === currentUser.userid || m.to === currentUser.userid);
         const chatUsers = new Set();
         userMessages.forEach(msg => {
-            if (msg.from === currentUser.userID) chatUsers.add(msg.to);
+            if (msg.from === currentUser.userid) chatUsers.add(msg.to);
             else chatUsers.add(msg.from);
         });
-        chatUsers.add(currentUser.userID);
+        chatUsers.add(currentUser.userid);
 
         return Array.from(chatUsers).map(userId => {
-            const user = users.find(u => u.userID === userId);
-            if (!user && userId !== currentUser.userID) return null;
-            const isSelf = userId === currentUser.userID;
-            const displayUser = isSelf ? { ...currentUser, displayName: '📝 Заметки', username: 'saved' } : user;
-            const lastMessage = userMessages.filter(m => (m.from === userId && m.to === currentUser.userID) || (m.to === userId && m.from === currentUser.userID))
+            const user = users.find(u => u.userid === userId);
+            if (!user && userId !== currentUser.userid) return null;
+            const isSelf = userId === currentUser.userid;
+            const displayUser = isSelf ? { ...currentUser, displayname: '📝 Заметки', username: 'saved' } : user;
+            const lastMessage = userMessages.filter(m => (m.from === userId && m.to === currentUser.userid) || (m.to === userId && m.from === currentUser.userid))
                 .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-            const unreadCount = messages.filter(m => m.from === userId && m.to === currentUser.userID && !m.isRead).length;
+            const unreadCount = messages.filter(m => m.from === userId && m.to === currentUser.userid && !m.isRead).length;
             return { user: displayUser, lastMessage, unreadCount, isSelf };
         }).filter(c => c);
     }
 
     function getFriends() {
         const friendIds = currentUser.friends || [];
-        return friendIds.map(fid => users.find(u => u.userID === fid)).filter(u => u);
+        return friendIds.map(fid => users.find(u => u.userid === fid)).filter(u => u);
     }
 
     function renderCurrentList() {
@@ -798,13 +784,13 @@
             return;
         }
         container.innerHTML = chats.map(chat => {
-            const isActive = currentChatUser && ((chat.isSelf && currentChatUser.userID === currentUser.userID) || (!chat.isSelf && currentChatUser?.userID === chat.user.userID));
+            const isActive = currentChatUser && ((chat.isSelf && currentChatUser.userid === currentUser.userid) || (!chat.isSelf && currentChatUser?.userid === chat.user.userid));
             const avatarUrl = chat.user.avatar;
-            const status = userStatuses[chat.user.userID];
+            const status = userStatuses[chat.user.userid];
             const isOnline = status?.isOnline;
             const displayName = chat.isSelf ? '📝 Заметки' : getDisplayNameForUser(chat.user);
             return `
-                <div class="chat-item ${isActive ? 'active' : ''}" onclick="selectChat('${chat.user.userID}', ${chat.isSelf})">
+                <div class="chat-item ${isActive ? 'active' : ''}" onclick="selectChat('${chat.user.userid}', ${chat.isSelf})">
                     <div class="chat-avatar" style="${avatarUrl ? `background-image: url(${avatarUrl}); background-size: cover;` : ''}">
                         ${!avatarUrl ? (displayName.charAt(0).toUpperCase() || 'U') : ''}
                         ${isOnline && !chat.isSelf ? '<div class="online-dot"></div>' : ''}
@@ -833,23 +819,23 @@
             return;
         }
         container.innerHTML = friends.map(friend => {
-            const status = userStatuses[friend.userID];
+            const status = userStatuses[friend.userid];
             const isOnline = status?.isOnline;
-            const customName = currentUser.customNames?.[friend.userID];
+            const customName = currentUser.customnames?.[friend.userid];
             return `
-                <div class="chat-item" onclick="selectChat('${friend.userID}', false)">
+                <div class="chat-item" onclick="selectChat('${friend.userid}', false)">
                     <div class="chat-avatar" style="${friend.avatar ? `background-image: url(${friend.avatar}); background-size: cover;` : ''}">
-                        ${!friend.avatar ? (friend.displayName.charAt(0).toUpperCase()) : ''}
+                        ${!friend.avatar ? (friend.displayname.charAt(0).toUpperCase()) : ''}
                         ${isOnline ? '<div class="online-dot"></div>' : ''}
                     </div>
                     <div class="chat-info">
                         <div class="chat-name">
-                            ${escapeHtml(customName || friend.displayName)}
+                            ${escapeHtml(customName || friend.displayname)}
                             <span class="friend-badge">@${escapeHtml(friend.username)}</span>
                         </div>
                         <div class="chat-last-message">${friend.bio || 'Нет описания'}</div>
                     </div>
-                    <button class="friend-btn remove" onclick="event.stopPropagation(); removeFriend('${friend.userID}')" style="padding: 4px 8px;">➖</button>
+                    <button class="friend-btn remove" onclick="event.stopPropagation(); removeFriend('${friend.userid}')" style="padding: 4px 8px;">➖</button>
                 </div>
             `;
         }).join('');
@@ -863,10 +849,10 @@
     }
 
     window.selectChat = function(userId, isSelf = false) {
-        if (isSelf || userId === currentUser.userID) {
-            currentChatUser = { userID: currentUser.userID, displayName: '📝 Заметки', username: 'saved', avatar: null, isSelf: true };
+        if (isSelf || userId === currentUser.userid) {
+            currentChatUser = { userid: currentUser.userid, displayname: '📝 Заметки', username: 'saved', avatar: null, isSelf: true };
         } else {
-            currentChatUser = users.find(u => u.userID === userId);
+            currentChatUser = users.find(u => u.userid === userId);
             if (!currentChatUser) return;
             currentChatUser.isSelf = false;
         }
@@ -882,7 +868,7 @@
 
     function updateChatHeader() {
         const user = currentChatUser;
-        const isSelf = user?.isSelf || user?.userID === currentUser.userID;
+        const isSelf = user?.isSelf || user?.userid === currentUser.userid;
         const displayName = isSelf ? '📝 Заметки' : getDisplayNameForUser(user);
         const avatarUrl = user?.avatar;
         const avatarEl = document.getElementById('chatAvatar');
@@ -903,7 +889,7 @@
             await apiRequest('/messages/read', 'POST', { from: fromId });
             await loadData();
             renderCurrentList();
-            if (currentChatUser && (currentChatUser.userID === fromId || (fromId === currentUser.userID && currentChatUser.isSelf))) {
+            if (currentChatUser && (currentChatUser.userid === fromId || (fromId === currentUser.userid && currentChatUser.isSelf))) {
                 renderMessages();
             }
         } catch(e) {}
@@ -911,10 +897,10 @@
 
     function renderMessages() {
         if (!currentChatUser) return;
-        const isSelfChat = currentChatUser.isSelf || currentChatUser.userID === currentUser.userID;
+        const isSelfChat = currentChatUser.isSelf || currentChatUser.userid === currentUser.userid;
         const chatMessages = messages.filter(m => 
-            (m.from === currentUser.userID && m.to === (isSelfChat ? currentUser.userID : currentChatUser.userID)) ||
-            (m.to === currentUser.userID && m.from === (isSelfChat ? currentUser.userID : currentChatUser.userID))
+            (m.from === currentUser.userid && m.to === (isSelfChat ? currentUser.userid : currentChatUser.userid)) ||
+            (m.to === currentUser.userid && m.from === (isSelfChat ? currentUser.userid : currentChatUser.userid))
         ).sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
 
         const container = document.getElementById('messagesContainer');
@@ -924,7 +910,7 @@
             return;
         }
         container.innerHTML = chatMessages.map(msg => `
-            <div class="message ${msg.from === currentUser.userID ? 'sent' : 'received'}">
+            <div class="message ${msg.from === currentUser.userid ? 'sent' : 'received'}">
                 <div class="message-bubble">
                     <div class="message-text">${escapeHtml(msg.text)}</div>
                     <div class="message-time">${formatTime(msg.createdAt)}</div>
@@ -937,7 +923,7 @@
     window.sendMessage = async function() {
         const text = document.getElementById('messageInput').value.trim();
         if (!text || !currentChatUser) return;
-        const toId = currentChatUser.isSelf ? currentUser.userID : currentChatUser.userID;
+        const toId = currentChatUser.isSelf ? currentUser.userid : currentChatUser.userid;
         try {
             const msg = await apiRequest('/messages', 'POST', { to: toId, text });
             messages.push(msg);
@@ -964,16 +950,16 @@
         const query = document.getElementById('searchInput').value.toLowerCase();
         const resultsDiv = document.getElementById('searchResults');
         if (!query) { resultsDiv.style.display = 'none'; return; }
-        const results = users.filter(u => u.userID !== currentUser.userID && u.username.includes(query));
+        const results = users.filter(u => u.userid !== currentUser.userid && u.username.includes(query));
         if (results.length) {
             resultsDiv.style.display = 'block';
             resultsDiv.innerHTML = results.map(u => `
-                <div class="search-result-item" onclick="selectChat('${u.userID}', false); document.getElementById('searchInput').value=''; resultsDiv.style.display='none';">
+                <div class="search-result-item" onclick="selectChat('${u.userid}', false); document.getElementById('searchInput').value=''; resultsDiv.style.display='none';">
                     <div class="search-result-avatar" style="${u.avatar ? `background-image: url(${u.avatar}); background-size: cover;` : ''}">
-                        ${!u.avatar ? u.displayName.charAt(0).toUpperCase() : ''}
+                        ${!u.avatar ? u.displayname.charAt(0).toUpperCase() : ''}
                     </div>
                     <div>
-                        <strong>${escapeHtml(u.displayName)}</strong><br>
+                        <strong>${escapeHtml(u.displayname)}</strong><br>
                         <small>@${escapeHtml(u.username)}</small>
                     </div>
                 </div>
@@ -1006,14 +992,6 @@
         }, 3000);
     }
 
-    // Инициализация
-    const saved = localStorage.getItem('vexa_user');
-    if (saved) {
-        currentUser = JSON.parse(saved);
-        document.getElementById('authModal').classList.remove('active');
-        loadData().then(() => { updateUI(); startPolling(); });
-    }
-
     let searchTimeout;
     document.getElementById('searchInput').addEventListener('input', () => {
         clearTimeout(searchTimeout);
@@ -1027,5 +1005,46 @@
         }
     });
 </script>
+
+<!-- Модалка авторизации -->
+<div class="modal active" id="authModal" style="display: flex;">
+    <div class="modal-content">
+        <h2 id="authTitle">Вход в Vexa</h2>
+        <div id="loginForm">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="loginEmail">
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" id="loginPassword">
+            </div>
+            <button class="btn-primary" onclick="login()">Войти</button>
+            <button class="btn-secondary" onclick="showRegister()">Создать аккаунт</button>
+        </div>
+        <div id="registerForm" style="display: none;">
+            <div class="form-group">
+                <label>Отображаемое имя</label>
+                <input type="text" id="regDisplayName">
+            </div>
+            <div class="form-group">
+                <label>Username (@уникальный)</label>
+                <input type="text" id="regUsername">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="regEmail">
+            </div>
+            <div class="form-group">
+                <label>Пароль</label>
+                <input type="password" id="regPassword">
+            </div>
+            <button class="btn-primary" onclick="register()">Зарегистрироваться</button>
+            <button class="btn-secondary" onclick="showLogin()">Уже есть аккаунт? Войти</button>
+        </div>
+        <div id="authError" class="error-message"></div>
+        <div style="font-size: 11px; text-align: center; margin-top: 15px; color: #666;">📧 Email должен быть настоящим (name@mail.com)</div>
+    </div>
+</div>
 </body>
 </html>
