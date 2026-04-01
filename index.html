@@ -18,7 +18,7 @@
             padding: 20px;
         }
         
-        /* СТАРТОВЫЙ ЭКРАН ПРЕМИУМ */
+        /* СТАРТОВЫЙ ЭКРАН — только логотип */
         .splash-screen {
             position: fixed;
             top: 0;
@@ -30,170 +30,35 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-            overflow: hidden;
+            transition: opacity 0.6s ease;
         }
         .splash-screen.hide {
             opacity: 0;
             visibility: hidden;
         }
         .splash-content {
-            text-align: center;
-            animation: floatIn 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
-            position: relative;
-            z-index: 2;
+            animation: fadeInScale 0.5s ease-out;
         }
         .splash-logo {
-            width: 140px;
-            height: 140px;
-            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
-            border-radius: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 28px;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8);
-            animation: pulseGlow 1.2s ease-in-out infinite;
-            position: relative;
+            animation: gentlePulse 1.2s ease-in-out infinite;
         }
-        .splash-logo::after {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            right: -8px;
-            bottom: -8px;
-            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
-            border-radius: 44px;
-            animation: glowRing 1.5s ease-out infinite;
-        }
-        .splash-logo span {
-            font-size: 72px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
-        }
-        .splash-title {
-            color: white;
-            font-size: 34px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            margin-bottom: 12px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-        .splash-subtitle {
-            color: rgba(255,255,255,0.85);
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 36px;
-            letter-spacing: 0.3px;
-        }
-        .splash-loader {
-            width: 44px;
-            height: 44px;
-            border: 3px solid rgba(255,255,255,0.25);
-            border-top-color: white;
-            border-right-color: white;
-            border-radius: 50%;
-            margin: 0 auto;
-            animation: spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-        }
-        
-        /* ВОЛНА */
-        .wave-container {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-        .wave {
-            position: absolute;
-            bottom: -100px;
-            left: 0;
-            width: 100%;
-            height: 200px;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.15)" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,213.3C960,224,1056,224,1152,208C1248,192,1344,160,1392,144L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
-            background-size: 1440px 200px;
-            animation: waveMove 8s linear infinite;
-            opacity: 0.6;
-        }
-        .wave2 {
-            bottom: -120px;
-            height: 220px;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.25)" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,176C384,171,480,181,576,197.3C672,213,768,235,864,229.3C960,224,1056,192,1152,181.3C1248,171,1344,181,1392,186.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
-            background-size: 1440px 220px;
-            animation: waveMove 12s linear infinite reverse;
-            opacity: 0.4;
-        }
-        .wave3 {
-            bottom: -80px;
-            height: 180px;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.35)" fill-opacity="1" d="M0,160L48,170.7C96,181,192,203,288,202.7C384,203,480,181,576,170.7C672,160,768,160,864,170.7C960,181,1056,203,1152,208C1248,213,1344,203,1392,197.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
-            background-size: 1440px 180px;
-            animation: waveMove 6s linear infinite;
-            opacity: 0.5;
-        }
-        
-        @keyframes waveMove {
-            0% { background-position-x: 0; }
-            100% { background-position-x: 1440px; }
-        }
-        
-        @keyframes floatIn {
+        @keyframes fadeInScale {
             0% {
                 opacity: 0;
-                transform: scale(0.9) translateY(30px);
+                transform: scale(0.85);
             }
             100% {
                 opacity: 1;
-                transform: scale(1) translateY(0);
+                transform: scale(1);
             }
         }
-        
-        @keyframes pulseGlow {
+        @keyframes gentlePulse {
             0%, 100% {
                 transform: scale(1);
-                box-shadow: 0 25px 45px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8);
             }
             50% {
                 transform: scale(1.02);
-                box-shadow: 0 30px 55px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.9);
             }
-        }
-        
-        @keyframes glowRing {
-            0% {
-                opacity: 0;
-                transform: scale(0.8);
-            }
-            50% {
-                opacity: 0.6;
-                transform: scale(1);
-            }
-            100% {
-                opacity: 0;
-                transform: scale(1.2);
-            }
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        @keyframes waveFadeOut {
-            0% {
-                opacity: 1;
-                transform: translateY(0);
-            }
-            100% {
-                opacity: 0;
-                transform: translateY(100px);
-            }
-        }
-        
-        .wave-fade-out {
-            animation: waveFadeOut 0.8s ease-out forwards;
         }
         
         /* ОСНОВНОЙ ИНТЕРФЕЙС */
@@ -216,7 +81,6 @@
             transform: scale(1) translateY(0);
         }
         
-        /* Остальные стили интерфейса (как были) */
         .sidebar {
             width: 320px;
             background: #f8f9fa;
@@ -581,20 +445,37 @@
     </style>
 </head>
 <body>
-    <!-- СТАРТОВЫЙ ЭКРАН ПРЕМИУМ -->
+    <!-- СТАРТОВЫЙ ЭКРАН: только логотип -->
     <div id="splash" class="splash-screen">
-        <div class="wave-container">
-            <div class="wave" id="wave1"></div>
-            <div class="wave2" id="wave2"></div>
-            <div class="wave3" id="wave3"></div>
-        </div>
         <div class="splash-content">
             <div class="splash-logo">
-                <span>💬</span>
+                <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ffffff"/>
+                            <stop offset="100%" stop-color="#f0f0f0"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="100" height="100" rx="28" fill="url(#logoGrad)" filter="url(#shadow)"/>
+                    <path d="M30 35 L50 70 L70 35" stroke="#667eea" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    <path d="M30 35 L50 70 L70 35" stroke="#764ba2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.6"/>
+                    <circle cx="30" cy="35" r="3" fill="#667eea"/>
+                    <circle cx="70" cy="35" r="3" fill="#764ba2"/>
+                    <defs>
+                        <filter id="shadow" x="-0.2" y="-0.2" width="1.4" height="1.4">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+                            <feOffset dx="2" dy="4"/>
+                            <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.3"/>
+                            </feComponentTransfer>
+                            <feMerge>
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                </svg>
             </div>
-            <div class="splash-title">Vexa Messenger</div>
-            <div class="splash-subtitle">быстро. удобно. красиво.</div>
-            <div class="splash-loader"></div>
         </div>
     </div>
 
@@ -722,21 +603,16 @@
         let pollInterval = null;
         let selectedImageFile = null;
 
-        // СТАРТОВЫЙ ЭКРАН: 2.5 секунды + анимация волн
+        // СТАРТОВЫЙ ЭКРАН: 5 секунд, затем плавно исчезает
         setTimeout(() => {
             const splash = document.getElementById('splash');
-            const waves = document.querySelectorAll('.wave, .wave2, .wave3');
             if (splash) {
-                // Добавляем анимацию исчезновения волн
-                waves.forEach(wave => {
-                    wave.classList.add('wave-fade-out');
-                });
                 splash.classList.add('hide');
                 setTimeout(() => {
                     splash.style.display = 'none';
-                }, 800);
+                }, 600);
             }
-        }, 2500);
+        }, 5000);
 
         async function apiRequest(endpoint, method = 'GET', data = null) {
             const opts = { method, headers: { 'Content-Type': 'application/json' } };
