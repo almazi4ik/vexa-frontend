@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vexa Messenger</title>
+    <title>Vexa Messenger — печатает, меню сообщений, каналы</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
@@ -18,7 +18,7 @@
             padding: 20px;
         }
         
-        /* СТАРТОВЫЙ ЭКРАН — только логотип */
+        /* СТАРТОВЫЙ ЭКРАН */
         .splash-screen {
             position: fixed;
             top: 0;
@@ -43,22 +43,12 @@
             animation: gentlePulse 1.2s ease-in-out infinite;
         }
         @keyframes fadeInScale {
-            0% {
-                opacity: 0;
-                transform: scale(0.85);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+            0% { opacity: 0; transform: scale(0.85); }
+            100% { opacity: 1; transform: scale(1); }
         }
         @keyframes gentlePulse {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.02);
-            }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
         }
         
         /* ОСНОВНОЙ ИНТЕРФЕЙС */
@@ -87,7 +77,6 @@
             border-right: 1px solid #e0e0e0;
             display: flex;
             flex-direction: column;
-            transition: all 0.2s ease;
         }
         .profile {
             padding: 20px;
@@ -111,9 +100,7 @@
             color: white;
             font-weight: bold;
             font-size: 20px;
-            transition: transform 0.2s;
         }
-        .avatar:active { transform: scale(0.95); }
         .profile-info { flex: 1; }
         .display-name { font-weight: bold; font-size: 16px; }
         .username { font-size: 12px; color: #666; }
@@ -122,9 +109,7 @@
             border: none;
             font-size: 20px;
             cursor: pointer;
-            transition: transform 0.1s;
         }
-        .edit-btn:active { transform: scale(0.9); }
         .search {
             padding: 12px;
             border-bottom: 1px solid #e0e0e0;
@@ -135,9 +120,7 @@
             border: 1px solid #ddd;
             border-radius: 20px;
             outline: none;
-            transition: all 0.2s;
         }
-        .search input:focus { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.2); }
         .tabs {
             display: flex;
             border-bottom: 1px solid #e0e0e0;
@@ -148,7 +131,6 @@
             text-align: center;
             cursor: pointer;
             color: #666;
-            transition: all 0.2s;
         }
         .tab.active {
             color: #667eea;
@@ -166,9 +148,8 @@
             padding: 12px;
             cursor: pointer;
             border-bottom: 1px solid #e0e0e0;
-            transition: all 0.2s;
         }
-        .chat-item:hover { background: #e9ecef; transform: translateX(2px); }
+        .chat-item:hover { background: #e9ecef; }
         .chat-item.active { background: #e3f2fd; }
         .chat-avatar {
             width: 45px;
@@ -177,7 +158,6 @@
             background: #667eea;
             background-size: cover;
             position: relative;
-            transition: transform 0.1s;
         }
         .online-dot {
             position: absolute;
@@ -225,7 +205,16 @@
             border-radius: 50%;
             background: #667eea;
             background-size: cover;
-            transition: transform 0.2s;
+        }
+        .typing-status {
+            font-size: 12px;
+            color: #667eea;
+            margin-top: 2px;
+            animation: pulse 0.8s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
         }
         .friend-actions {
             display: flex;
@@ -237,9 +226,7 @@
             border: none;
             cursor: pointer;
             font-size: 12px;
-            transition: all 0.1s;
         }
-        .friend-btn:active { transform: scale(0.95); }
         .friend-btn.add { background: #667eea; color: white; }
         .friend-btn.remove { background: #dc3545; color: white; }
         .messages {
@@ -251,8 +238,12 @@
         .message {
             margin-bottom: 12px;
             display: flex;
-            will-change: transform, opacity;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-radius: 12px;
+            padding: 4px 8px;
         }
+        .message:hover { background: rgba(0,0,0,0.05); }
         .message.sent { justify-content: flex-end; }
         .message-bubble {
             max-width: 70%;
@@ -273,6 +264,31 @@
             display: block;
         }
         .message-time { font-size: 10px; margin-top: 4px; opacity: 0.7; }
+        
+        /* Меню сообщения */
+        .message-menu {
+            position: fixed;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            padding: 8px 0;
+            min-width: 160px;
+            z-index: 2000;
+            display: none;
+        }
+        .message-menu button {
+            display: block;
+            width: 100%;
+            padding: 8px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .message-menu button:hover { background: #f0f0f0; }
+        .message-menu .danger { color: #dc3545; }
+        
         .input-area {
             padding: 12px 16px;
             background: white;
@@ -299,18 +315,14 @@
             height: 44px;
             font-size: 24px;
             cursor: pointer;
-            transition: transform 0.1s;
         }
-        .emoji-btn:active { transform: scale(0.95); }
         .message-input {
             flex: 1;
             padding: 12px 16px;
             border: 1px solid #ddd;
             border-radius: 25px;
             outline: none;
-            transition: all 0.2s;
         }
-        .message-input:focus { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.2); }
         .send-btn {
             padding: 10px 20px;
             background: #667eea;
@@ -318,9 +330,7 @@
             border: none;
             border-radius: 25px;
             cursor: pointer;
-            transition: transform 0.1s;
         }
-        .send-btn:active { transform: scale(0.95); }
         .image-preview-area {
             display: flex;
             align-items: center;
@@ -374,10 +384,7 @@
             padding: 24px;
             width: 90%;
             max-width: 450px;
-            transform: scale(0.95);
-            transition: transform 0.2s;
         }
-        .modal.active .modal-content { transform: scale(1); }
         .modal-content input, .modal-content textarea {
             width: 100%;
             padding: 10px;
@@ -402,9 +409,7 @@
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.1s;
         }
-        button.btn:active { transform: scale(0.98); }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #f0f0f0; }
         .search-results {
@@ -421,9 +426,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            transition: all 0.1s;
         }
-        .search-result:active { transform: scale(0.98); background: #f0f0f0; }
         .error { color: red; font-size: 12px; text-align: center; margin-top: 8px; }
         
         @keyframes slideInRight {
@@ -445,7 +448,7 @@
     </style>
 </head>
 <body>
-    <!-- СТАРТОВЫЙ ЭКРАН: только логотип -->
+    <!-- СТАРТОВЫЙ ЭКРАН -->
     <div id="splash" class="splash-screen">
         <div class="splash-content">
             <div class="splash-logo">
@@ -505,6 +508,7 @@
                     <div class="chat-header-avatar" id="chatAvatar"></div>
                     <div>
                         <h3 id="chatName"></h3>
+                        <div id="typingStatus" class="typing-status" style="display: none;">✍️ печатает...</div>
                         <p id="chatUsername" style="font-size: 12px; color: #666;"></p>
                     </div>
                 </div>
@@ -514,7 +518,7 @@
                     <button class="friend-btn" onclick="openCustomNameModal()">✏️ Своё имя</button>
                 </div>
             </div>
-            <div class="messages" id="messages"></div>
+            <div class="messages" id="messages" onclick="closeMessageMenu()"></div>
             <div class="input-area" id="inputArea" style="display: none;">
                 <div id="imagePreviewContainer" class="image-preview-area" style="display: none;">
                     <img id="imagePreview" class="image-preview">
@@ -526,12 +530,20 @@
                         <button class="emoji-btn" onclick="document.getElementById('imageInput').click()">📷</button>
                     </div>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;">
-                    <input type="text" class="message-input" id="messageInput" placeholder="Сообщение...">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Сообщение..." onkeyup="onTyping()">
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()">📤</button>
                 </div>
             </div>
             <div id="emojiPickerContainer" class="emoji-picker-container"></div>
         </div>
+    </div>
+
+    <!-- Меню сообщения -->
+    <div id="messageMenu" class="message-menu">
+        <button onclick="copyMessage()">📋 Копировать</button>
+        <button id="editMsgBtn" onclick="editMessage()" style="display: none;">✏️ Изменить</button>
+        <button id="pinMsgBtn" onclick="pinMessage()">📌 Закрепить</button>
+        <button class="danger" onclick="deleteMessage()">🗑️ Удалить</button>
     </div>
 
     <div class="modal" id="authModal">
@@ -577,6 +589,25 @@
         </div>
     </div>
 
+    <div class="modal" id="editMessageModal">
+        <div class="modal-content">
+            <h2>Редактировать сообщение</h2>
+            <textarea id="editMessageText" rows="3" style="width:100%"></textarea>
+            <button class="btn btn-primary" onclick="saveEditedMessage()">Сохранить</button>
+            <button class="btn btn-secondary" onclick="closeEditModal()">Отмена</button>
+        </div>
+    </div>
+
+    <div class="modal" id="createChannelModal">
+        <div class="modal-content">
+            <h2>Создать канал</h2>
+            <input type="text" id="channelName" placeholder="Название канала">
+            <textarea id="channelDesc" rows="2" placeholder="Описание"></textarea>
+            <button class="btn btn-primary" onclick="createChannel()">Создать</button>
+            <button class="btn btn-secondary" onclick="closeChannelModal()">Отмена</button>
+        </div>
+    </div>
+
     <script type="module">
         import EmojiPicker from 'https://unpkg.com/emoji-picker-element@1.20.0/index.js';
         const picker = new EmojiPicker();
@@ -602,8 +633,13 @@
         let userStatuses = {};
         let pollInterval = null;
         let selectedImageFile = null;
+        let typingTimeout = null;
+        let currentMessageMenu = null;
+        let currentMessageId = null;
+        let currentMessageIsOwn = false;
+        let pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + (currentUser?.userid || '')) || '[]');
 
-        // СТАРТОВЫЙ ЭКРАН: 5 секунд, затем плавно исчезает
+        // Стартовый экран 5 сек
         setTimeout(() => {
             const splash = document.getElementById('splash');
             if (splash) {
@@ -624,6 +660,130 @@
             return json;
         }
 
+        // Статус печатает
+        window.onTyping = () => {
+            if (!currentChat || currentChat.isSelf) return;
+            if (typingTimeout) clearTimeout(typingTimeout);
+            fetch(`${API}/typing/${currentChat.userid}`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }).catch(e=>console.log);
+            typingTimeout = setTimeout(() => {
+                fetch(`${API}/typing/stop/${currentChat.userid}`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }).catch(e=>console.log);
+            }, 2000);
+        };
+
+        // Получение статуса печатает (имитация через polling)
+        let lastTyping = {};
+        function checkTyping() {
+            if (!currentChat || currentChat.isSelf) {
+                document.getElementById('typingStatus').style.display = 'none';
+                return;
+            }
+            const now = Date.now();
+            const isTyping = lastTyping[currentChat.userid] && (now - lastTyping[currentChat.userid] < 3000);
+            document.getElementById('typingStatus').style.display = isTyping ? 'block' : 'none';
+        }
+        setInterval(checkTyping, 1000);
+
+        // Меню сообщения
+        window.showMessageMenu = (event, msgId, isOwn, text, isPinned) => {
+            event.stopPropagation();
+            currentMessageId = msgId;
+            currentMessageIsOwn = isOwn;
+            const menu = document.getElementById('messageMenu');
+            const editBtn = document.getElementById('editMsgBtn');
+            const pinBtn = document.getElementById('pinMsgBtn');
+            editBtn.style.display = isOwn ? 'block' : 'none';
+            pinBtn.innerHTML = isPinned ? '📌 Открепить' : '📌 Закрепить';
+            menu.style.display = 'block';
+            menu.style.left = event.clientX + 'px';
+            menu.style.top = event.clientY + 'px';
+            setTimeout(() => {
+                document.addEventListener('click', closeMessageMenu);
+            }, 100);
+        };
+
+        window.closeMessageMenu = () => {
+            document.getElementById('messageMenu').style.display = 'none';
+            document.removeEventListener('click', closeMessageMenu);
+        };
+
+        window.copyMessage = () => {
+            const msg = messages.find(m => m.id == currentMessageId);
+            if (msg) {
+                navigator.clipboard.writeText(msg.text || (msg.image ? '📷 Фото' : ''));
+                alert('Скопировано');
+            }
+            closeMessageMenu();
+        };
+
+        window.editMessage = () => {
+            const msg = messages.find(m => m.id == currentMessageId);
+            if (msg) {
+                document.getElementById('editMessageText').value = msg.text || '';
+                document.getElementById('editMessageModal').classList.add('active');
+            }
+            closeMessageMenu();
+        };
+
+        window.saveEditedMessage = async () => {
+            const newText = document.getElementById('editMessageText').value;
+            if (!newText) return;
+            try {
+                await apiRequest(`/messages/${currentMessageId}`, 'PUT', { text: newText });
+                await loadData();
+                renderMessages();
+                closeEditModal();
+            } catch(e) { alert(e.message); }
+        };
+
+        window.pinMessage = () => {
+            const msg = messages.find(m => m.id == currentMessageId);
+            if (msg) {
+                const index = pinnedMessages.indexOf(currentMessageId);
+                if (index === -1) {
+                    pinnedMessages.push(currentMessageId);
+                } else {
+                    pinnedMessages.splice(index, 1);
+                }
+                localStorage.setItem('pinned_' + currentUser.userid, JSON.stringify(pinnedMessages));
+                renderMessages();
+            }
+            closeMessageMenu();
+        };
+
+        window.deleteMessage = async () => {
+            if (confirm('Удалить сообщение?')) {
+                try {
+                    await apiRequest(`/messages/${currentMessageId}`, 'DELETE');
+                    await loadData();
+                    renderMessages();
+                } catch(e) { alert(e.message); }
+            }
+            closeMessageMenu();
+        };
+
+        // Каналы
+        window.openChannelModal = () => {
+            document.getElementById('createChannelModal').classList.add('active');
+        };
+        window.closeChannelModal = () => {
+            document.getElementById('createChannelModal').classList.remove('active');
+        };
+        window.createChannel = async () => {
+            const name = document.getElementById('channelName').value;
+            const description = document.getElementById('channelDesc').value;
+            if (!name) return;
+            try {
+                await apiRequest('/channels', 'POST', { name, description });
+                alert('Канал создан');
+                closeChannelModal();
+                await loadData();
+            } catch(e) { alert(e.message); }
+        };
+        window.closeEditModal = () => {
+            document.getElementById('editMessageModal').classList.remove('active');
+        };
+
+        // Остальной код (аналогичный предыдущему, с добавлением pinned)
         document.getElementById('imageInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -647,17 +807,13 @@
         window.sendMessage = async () => {
             const text = document.getElementById('messageInput').value.trim();
             const file = selectedImageFile;
-            
             if (!text && !file) return;
             if (!currentChat) return;
-            
             const toId = currentChat.isSelf ? currentUser.userid : currentChat.userid;
-            
             const sendBtn = document.getElementById('sendBtn');
             const originalText = sendBtn.innerHTML;
             sendBtn.innerHTML = '⏳';
             sendBtn.disabled = true;
-            
             try {
                 let imageData = null;
                 if (file) {
@@ -667,21 +823,14 @@
                         reader.readAsDataURL(file);
                     });
                 }
-                
-                const msg = await apiRequest('/messages', 'POST', { 
-                    to: toId, 
-                    text: text || (file ? '' : ''),
-                    image: imageData 
-                });
+                const msg = await apiRequest('/messages', 'POST', { to: toId, text: text || (file ? '' : ''), image: imageData });
                 messages.push(msg);
                 document.getElementById('messageInput').value = '';
                 cancelImage();
                 renderMessages();
                 renderCurrentList();
                 await loadData();
-            } catch(e) { 
-                alert(e.message); 
-            } finally {
+            } catch(e) { alert(e.message); } finally {
                 sendBtn.innerHTML = originalText;
                 sendBtn.disabled = false;
             }
@@ -696,17 +845,14 @@
                 currentUser = data.user;
                 currentUser.token = data.token;
                 localStorage.setItem('vexa_user', JSON.stringify(currentUser));
+                pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + currentUser.userid) || '[]');
                 document.getElementById('authModal').classList.remove('active');
                 document.getElementById('app').style.display = 'flex';
-                setTimeout(() => {
-                    document.getElementById('app').classList.add('visible');
-                }, 50);
+                setTimeout(() => document.getElementById('app').classList.add('visible'), 50);
                 await loadData();
                 startPolling();
                 updateUI();
-            } catch(e) {
-                document.getElementById('authError').innerText = e.message;
-            }
+            } catch(e) { document.getElementById('authError').innerText = e.message; }
         };
 
         window.register = async () => {
@@ -720,17 +866,14 @@
                 currentUser = data.user;
                 currentUser.token = data.token;
                 localStorage.setItem('vexa_user', JSON.stringify(currentUser));
+                pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + currentUser.userid) || '[]');
                 document.getElementById('authModal').classList.remove('active');
                 document.getElementById('app').style.display = 'flex';
-                setTimeout(() => {
-                    document.getElementById('app').classList.add('visible');
-                }, 50);
+                setTimeout(() => document.getElementById('app').classList.add('visible'), 50);
                 await loadData();
                 startPolling();
                 updateUI();
-            } catch(e) {
-                document.getElementById('authError').innerText = e.message;
-            }
+            } catch(e) { document.getElementById('authError').innerText = e.message; }
         };
 
         window.showRegister = () => {
@@ -886,7 +1029,7 @@
             const chats = getChats();
             const container = document.getElementById('chatsList');
             if (!chats.length) {
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Нет чатов<br>Найдите пользователя</div>';
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Нет чатов<br><button onclick="openChannelModal()" style="margin-top:10px;padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
                 return;
             }
             container.innerHTML = chats.map(chat => {
@@ -917,6 +1060,7 @@
                     </div>
                 `;
             }).join('');
+            container.innerHTML += '<div style="padding:12px;text-align:center;"><button onclick="openChannelModal()" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
         }
 
         function renderFriendsList() {
@@ -998,10 +1142,15 @@
         function renderMessages() {
             if (!currentChat) return;
             const isSelfChat = currentChat.isSelf || currentChat.userid === currentUser.userid;
-            const chatMessages = messages.filter(m => 
+            let chatMessages = messages.filter(m => 
                 (m.from === currentUser.userid && m.to === (isSelfChat ? currentUser.userid : currentChat.userid)) ||
                 (m.to === currentUser.userid && m.from === (isSelfChat ? currentUser.userid : currentChat.userid))
             ).sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+            
+            // Закреплённые сверху
+            const pinned = chatMessages.filter(m => pinnedMessages.includes(m.id));
+            const unpinned = chatMessages.filter(m => !pinnedMessages.includes(m.id));
+            chatMessages = [...pinned, ...unpinned];
 
             const container = document.getElementById('messages');
             if (!chatMessages.length) {
@@ -1017,12 +1166,14 @@
                 const isOwn = msg.from === currentUser.userid;
                 const isNew = index >= oldCount;
                 const animationClass = isNew ? (isOwn ? 'animate-sent' : 'animate-received') : '';
+                const isPinned = pinnedMessages.includes(msg.id);
                 
                 return `
-                    <div class="message ${isOwn ? 'sent' : 'received'} ${animationClass}">
+                    <div class="message ${isOwn ? 'sent' : 'received'} ${animationClass}" onclick="showMessageMenu(event, ${msg.id}, ${isOwn}, '${escapeHtml(msg.text || '').replace(/'/g, "\\'")}', ${isPinned})">
                         <div class="message-bubble">
+                            ${isPinned ? '📌 ' : ''}
                             ${displayText ? `<div class="message-text">${displayText}</div>` : ''}
-                            ${hasImage ? `<img src="${msg.image}" class="message-image" onclick="window.open('${msg.image}')" loading="lazy">` : ''}
+                            ${hasImage ? `<img src="${msg.image}" class="message-image" onclick="event.stopPropagation();window.open('${msg.image}')" loading="lazy">` : ''}
                             <div class="message-time">${formatTime(msg.createdAt)}</div>
                         </div>
                     </div>
@@ -1087,12 +1238,11 @@
         if (saved) {
             try {
                 currentUser = JSON.parse(saved);
+                pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + currentUser.userid) || '[]');
                 apiRequest('/users').then(() => {
                     document.getElementById('authModal').classList.remove('active');
                     document.getElementById('app').style.display = 'flex';
-                    setTimeout(() => {
-                        document.getElementById('app').classList.add('visible');
-                    }, 50);
+                    setTimeout(() => document.getElementById('app').classList.add('visible'), 50);
                     loadData().then(() => { updateUI(); startPolling(); });
                 }).catch(() => {
                     localStorage.removeItem('vexa_user');
