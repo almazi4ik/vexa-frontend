@@ -18,7 +18,7 @@
             padding: 20px;
         }
         
-        /* СТАРТОВЫЙ ЭКРАН */
+        /* СТАРТОВЫЙ ЭКРАН ПРЕМИУМ */
         .splash-screen {
             position: fixed;
             top: 0;
@@ -30,7 +30,8 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
         }
         .splash-screen.hide {
             opacity: 0;
@@ -38,61 +39,161 @@
         }
         .splash-content {
             text-align: center;
-            animation: fadeInUp 0.6s ease-out;
+            animation: floatIn 0.8s cubic-bezier(0.34, 1.2, 0.64, 1);
+            position: relative;
+            z-index: 2;
         }
         .splash-logo {
-            width: 120px;
-            height: 120px;
-            background: white;
-            border-radius: 32px;
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            border-radius: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            animation: pulse 1.5s infinite;
+            margin: 0 auto 28px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8);
+            animation: pulseGlow 1.2s ease-in-out infinite;
+            position: relative;
+        }
+        .splash-logo::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 44px;
+            animation: glowRing 1.5s ease-out infinite;
         }
         .splash-logo span {
-            font-size: 64px;
+            font-size: 72px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
         }
         .splash-title {
             color: white;
-            font-size: 28px;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-bottom: 16px;
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
         .splash-subtitle {
-            color: rgba(255,255,255,0.8);
-            font-size: 14px;
-            margin-bottom: 32px;
+            color: rgba(255,255,255,0.85);
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 36px;
+            letter-spacing: 0.3px;
         }
-        .loader {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255,255,255,0.3);
+        .splash-loader {
+            width: 44px;
+            height: 44px;
+            border: 3px solid rgba(255,255,255,0.25);
             border-top-color: white;
+            border-right-color: white;
             border-radius: 50%;
             margin: 0 auto;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
         }
+        
+        /* ВОЛНА */
+        .wave-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .wave {
+            position: absolute;
+            bottom: -100px;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.15)" fill-opacity="1" d="M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,213.3C960,224,1056,224,1152,208C1248,192,1344,160,1392,144L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
+            background-size: 1440px 200px;
+            animation: waveMove 8s linear infinite;
+            opacity: 0.6;
+        }
+        .wave2 {
+            bottom: -120px;
+            height: 220px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.25)" fill-opacity="1" d="M0,224L48,213.3C96,203,192,181,288,176C384,171,480,181,576,197.3C672,213,768,235,864,229.3C960,224,1056,192,1152,181.3C1248,171,1344,181,1392,186.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
+            background-size: 1440px 220px;
+            animation: waveMove 12s linear infinite reverse;
+            opacity: 0.4;
+        }
+        .wave3 {
+            bottom: -80px;
+            height: 180px;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="rgba(255,255,255,0.35)" fill-opacity="1" d="M0,160L48,170.7C96,181,192,203,288,202.7C384,203,480,181,576,170.7C672,160,768,160,864,170.7C960,181,1056,203,1152,208C1248,213,1344,203,1392,197.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') repeat-x;
+            background-size: 1440px 180px;
+            animation: waveMove 6s linear infinite;
+            opacity: 0.5;
+        }
+        
+        @keyframes waveMove {
+            0% { background-position-x: 0; }
+            100% { background-position-x: 1440px; }
+        }
+        
+        @keyframes floatIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.9) translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        @keyframes pulseGlow {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 25px 45px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.8);
+            }
+            50% {
+                transform: scale(1.02);
+                box-shadow: 0 30px 55px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.9);
+            }
+        }
+        
+        @keyframes glowRing {
+            0% {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(1.2);
+            }
+        }
+        
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
+        
+        @keyframes waveFadeOut {
+            0% {
                 opacity: 1;
                 transform: translateY(0);
             }
+            100% {
+                opacity: 0;
+                transform: translateY(100px);
+            }
+        }
+        
+        .wave-fade-out {
+            animation: waveFadeOut 0.8s ease-out forwards;
         }
         
         /* ОСНОВНОЙ ИНТЕРФЕЙС */
@@ -107,15 +208,15 @@
             display: flex;
             position: relative;
             opacity: 0;
-            transform: scale(0.98);
-            transition: opacity 0.4s ease, transform 0.4s ease;
+            transform: scale(0.97) translateY(10px);
+            transition: opacity 0.6s cubic-bezier(0.34, 1.2, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
         }
         .app.visible {
             opacity: 1;
-            transform: scale(1);
+            transform: scale(1) translateY(0);
         }
         
-        /* Остальные стили (как были) */
+        /* Остальные стили интерфейса (как были) */
         .sidebar {
             width: 320px;
             background: #f8f9fa;
@@ -480,15 +581,20 @@
     </style>
 </head>
 <body>
-    <!-- СТАРТОВЫЙ ЭКРАН -->
+    <!-- СТАРТОВЫЙ ЭКРАН ПРЕМИУМ -->
     <div id="splash" class="splash-screen">
+        <div class="wave-container">
+            <div class="wave" id="wave1"></div>
+            <div class="wave2" id="wave2"></div>
+            <div class="wave3" id="wave3"></div>
+        </div>
         <div class="splash-content">
             <div class="splash-logo">
                 <span>💬</span>
             </div>
             <div class="splash-title">Vexa Messenger</div>
             <div class="splash-subtitle">быстро. удобно. красиво.</div>
-            <div class="loader"></div>
+            <div class="splash-loader"></div>
         </div>
     </div>
 
@@ -616,16 +722,21 @@
         let pollInterval = null;
         let selectedImageFile = null;
 
-        // Показываем стартовый экран минимум 1.5 секунды, чтобы было красиво
+        // СТАРТОВЫЙ ЭКРАН: 2.5 секунды + анимация волн
         setTimeout(() => {
             const splash = document.getElementById('splash');
+            const waves = document.querySelectorAll('.wave, .wave2, .wave3');
             if (splash) {
+                // Добавляем анимацию исчезновения волн
+                waves.forEach(wave => {
+                    wave.classList.add('wave-fade-out');
+                });
                 splash.classList.add('hide');
                 setTimeout(() => {
                     splash.style.display = 'none';
-                }, 500);
+                }, 800);
             }
-        }, 1500);
+        }, 2500);
 
         async function apiRequest(endpoint, method = 'GET', data = null) {
             const opts = { method, headers: { 'Content-Type': 'application/json' } };
