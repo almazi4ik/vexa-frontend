@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vexa Messenger</title>
+    <title>Vexa Messenger — с эмодзи и картинками</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -24,8 +25,8 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.2);
             overflow: hidden;
             display: flex;
+            position: relative;
         }
-        /* Sidebar */
         .sidebar {
             width: 320px;
             background: #f8f9fa;
@@ -135,11 +136,11 @@
             padding: 2px 6px;
             font-size: 11px;
         }
-        /* Main chat area */
         .main {
             flex: 1;
             display: flex;
             flex-direction: column;
+            position: relative;
         }
         .chat-header {
             padding: 16px 20px;
@@ -186,14 +187,22 @@
         }
         .message.sent { justify-content: flex-end; }
         .message-bubble {
-            max-width: 60%;
+            max-width: 70%;
             padding: 10px 14px;
             border-radius: 18px;
             background: white;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            word-break: break-word;
         }
         .message.sent .message-bubble { background: #667eea; color: white; }
-        .message-text { word-wrap: break-word; }
+        .message-text { font-size: 14px; }
+        .message-image {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 12px;
+            margin-top: 6px;
+            cursor: pointer;
+        }
         .message-time { font-size: 10px; margin-top: 4px; opacity: 0.7; }
         .input-area {
             padding: 16px;
@@ -227,29 +236,21 @@
             border-radius: 25px;
             cursor: pointer;
         }
-        .sticker-panel {
+        .emoji-picker-container {
             position: absolute;
             bottom: 80px;
             right: 20px;
+            display: none;
+            z-index: 1000;
             background: white;
             border-radius: 16px;
-            padding: 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-            display: none;
-            flex-wrap: wrap;
-            gap: 8px;
-            max-width: 280px;
-            z-index: 100;
+            width: 350px;
+            height: 400px;
         }
-        .sticker-panel.show { display: flex; }
-        .sticker {
-            font-size: 32px;
-            cursor: pointer;
-            padding: 6px;
-            border-radius: 12px;
-            background: #f8f9fa;
+        .emoji-picker-container.show {
+            display: block;
         }
-        .sticker:hover { background: #e9ecef; transform: scale(1.1); }
         .modal {
             position: fixed;
             top: 0;
@@ -260,7 +261,7 @@
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            z-index: 2000;
         }
         .modal.active { display: flex; }
         .modal-content {
@@ -313,9 +314,15 @@
             gap: 12px;
         }
         .error { color: red; font-size: 12px; text-align: center; margin-top: 8px; }
+        .image-preview {
+            max-width: 100px;
+            max-height: 100px;
+            border-radius: 8px;
+        }
         @media (max-width: 768px) {
             .sidebar { width: 280px; }
             .message-bubble { max-width: 85%; }
+            .emoji-picker-container { width: 280px; right: 10px; }
         }
     </style>
 </head>
@@ -360,32 +367,13 @@
         </div>
         <div class="messages" id="messages"></div>
         <div class="input-area" id="inputArea" style="display: none;">
-            <button class="emoji-btn" onclick="toggleStickers()">😊</button>
+            <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
+            <button class="emoji-btn" onclick="document.getElementById('imageInput').click()">📷</button>
+            <input type="file" id="imageInput" accept="image/*" style="display: none;">
             <input type="text" class="message-input" id="messageInput" placeholder="Сообщение...">
             <button class="send-btn" onclick="sendMessage()">📤</button>
         </div>
-        <div id="stickerPanel" class="sticker-panel">
-            <div class="sticker" onclick="addSticker('🚀')">🚀</div>
-            <div class="sticker" onclick="addSticker('💜')">💜</div>
-            <div class="sticker" onclick="addSticker('🔥')">🔥</div>
-            <div class="sticker" onclick="addSticker('✨')">✨</div>
-            <div class="sticker" onclick="addSticker('🎉')">🎉</div>
-            <div class="sticker" onclick="addSticker('💪')">💪</div>
-            <div class="sticker" onclick="addSticker('😎')">😎</div>
-            <div class="sticker" onclick="addSticker('🥳')">🥳</div>
-            <div class="sticker" onclick="addSticker('🤖')">🤖</div>
-            <div class="sticker" onclick="addSticker('⭐')">⭐</div>
-            <div class="sticker" onclick="addSticker('🌈')">🌈</div>
-            <div class="sticker" onclick="addSticker('🎨')">🎨</div>
-            <div class="sticker" onclick="addSticker('💡')">💡</div>
-            <div class="sticker" onclick="addSticker('🎵')">🎵</div>
-            <div class="sticker" onclick="addSticker('📸')">📸</div>
-            <div class="sticker" onclick="addSticker('🍕')">🍕</div>
-            <div class="sticker" onclick="addSticker('☕')">☕</div>
-            <div class="sticker" onclick="addSticker('🎮')">🎮</div>
-            <div class="sticker" onclick="addSticker('💻')">💻</div>
-            <div class="sticker" onclick="addSticker('❤️')">❤️</div>
-        </div>
+        <div id="emojiPickerContainer" class="emoji-picker-container"></div>
     </div>
 </div>
 
@@ -433,6 +421,21 @@
     </div>
 </div>
 
+<script type="module">
+    import EmojiPicker from 'https://unpkg.com/emoji-picker-element@1.20.0/index.js';
+    const picker = new EmojiPicker();
+    picker.addEventListener('emoji-click', event => {
+        const input = document.getElementById('messageInput');
+        input.value += event.detail.unicode;
+        input.focus();
+    });
+    document.getElementById('emojiPickerContainer').appendChild(picker);
+    window.toggleEmojiPicker = () => {
+        const container = document.getElementById('emojiPickerContainer');
+        container.classList.toggle('show');
+    };
+</script>
+
 <script>
     const API = 'https://vexa-backend-fqdy.onrender.com/api';
     let currentUser = null;
@@ -443,7 +446,6 @@
     let userStatuses = {};
     let pollInterval = null;
 
-    // API helper
     async function apiRequest(endpoint, method = 'GET', data = null) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
         if (data) opts.body = JSON.stringify(data);
@@ -454,7 +456,6 @@
         return json;
     }
 
-    // Auth
     window.login = async () => {
         try {
             const data = await apiRequest('/auth/login', 'POST', {
@@ -506,7 +507,6 @@
         document.getElementById('authTitle').innerText = 'Вход в Vexa';
     };
 
-    // Load data
     async function loadData() {
         if (!currentUser) return;
         try {
@@ -533,7 +533,6 @@
         document.getElementById('username').innerText = `@${currentUser.username}`;
     }
 
-    // Profile
     window.openProfileModal = () => {
         document.getElementById('editName').value = currentUser.displayname;
         document.getElementById('editUsername').value = currentUser.username;
@@ -574,7 +573,6 @@
         } catch(e) { alert(e.message); }
     };
 
-    // Friends
     function isFriend(userId) {
         return currentUser.friends?.includes(userId) || false;
     }
@@ -594,7 +592,6 @@
         document.getElementById('removeFriendBtn').style.display = isF ? 'inline-block' : 'none';
     }
 
-    // Custom name
     window.openCustomNameModal = () => {
         const name = currentUser.customnames?.[currentChat?.userid] || '';
         document.getElementById('customNameInput').value = name;
@@ -619,7 +616,6 @@
         return currentUser.customnames?.[user.userid] || user.displayname;
     }
 
-    // Chats & messages
     function getChats() {
         const userMessages = messages.filter(m => m.from === currentUser.userid || m.to === currentUser.userid);
         const chatUsers = new Set();
@@ -670,7 +666,7 @@
                     </div>
                     <div class="chat-info">
                         <div class="chat-name">${escapeHtml(displayName)}</div>
-                        <div class="chat-last">${chat.lastMessage ? escapeHtml(chat.lastMessage.text) : 'Нет сообщений'}</div>
+                        <div class="chat-last">${chat.lastMessage ? escapeHtml(chat.lastMessage.text || '📷 Изображение') : 'Нет сообщений'}</div>
                     </div>
                     <div>
                         <div class="chat-time">${chat.lastMessage ? formatTime(chat.lastMessage.createdAt) : ''}</div>
@@ -773,7 +769,8 @@
         container.innerHTML = chatMessages.map(msg => `
             <div class="message ${msg.from === currentUser.userid ? 'sent' : 'received'}">
                 <div class="message-bubble">
-                    <div class="message-text">${escapeHtml(msg.text)}</div>
+                    <div class="message-text">${escapeHtml(msg.text || '')}</div>
+                    ${msg.image ? `<img src="${msg.image}" class="message-image" onclick="window.open('${msg.image}')">` : ''}
                     <div class="message-time">${formatTime(msg.createdAt)}</div>
                 </div>
             </div>
@@ -783,10 +780,27 @@
 
     window.sendMessage = async () => {
         const text = document.getElementById('messageInput').value.trim();
-        if (!text || !currentChat) return;
+        const fileInput = document.getElementById('imageInput');
+        const file = fileInput.files[0];
+        
+        let imageData = null;
+        if (file) {
+            imageData = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+            fileInput.value = '';
+        }
+        
+        if (!text && !imageData) return;
         const toId = currentChat.isSelf ? currentUser.userid : currentChat.userid;
         try {
-            const msg = await apiRequest('/messages', 'POST', { to: toId, text });
+            const msg = await apiRequest('/messages', 'POST', { 
+                to: toId, 
+                text: text || (imageData ? '📷 Изображение' : ''),
+                image: imageData 
+            });
             messages.push(msg);
             document.getElementById('messageInput').value = '';
             renderMessages();
@@ -795,18 +809,29 @@
         } catch(e) { alert(e.message); }
     };
 
-    // Stickers
-    window.toggleStickers = () => {
-        document.getElementById('stickerPanel').classList.toggle('show');
-    };
-    window.addSticker = (sticker) => {
-        const input = document.getElementById('messageInput');
-        input.value += sticker;
-        input.focus();
-        document.getElementById('stickerPanel').classList.remove('show');
-    };
+    function formatTime(iso) {
+        const date = new Date(iso);
+        const now = new Date();
+        return (now - date < 86400000) ? date.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : date.toLocaleDateString('ru-RU');
+    }
 
-    // Search
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function startPolling() {
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(async () => {
+            if (currentUser) {
+                await loadData();
+                if (currentChat) renderMessages();
+            }
+        }, 3000);
+    }
+
     function searchUsers() {
         const query = document.getElementById('searchInput').value.toLowerCase();
         const resultsDiv = document.getElementById('searchResults');
@@ -835,29 +860,6 @@
         renderCurrentList();
     };
 
-    function formatTime(iso) {
-        const date = new Date(iso);
-        const now = new Date();
-        return (now - date < 86400000) ? date.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : date.toLocaleDateString('ru-RU');
-    }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function startPolling() {
-        if (pollInterval) clearInterval(pollInterval);
-        pollInterval = setInterval(async () => {
-            if (currentUser) {
-                await loadData();
-                if (currentChat) renderMessages();
-            }
-        }, 3000);
-    }
-
-    // Check saved session
     const saved = localStorage.getItem('vexa_user');
     if (saved) {
         try {
