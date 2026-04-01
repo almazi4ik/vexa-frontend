@@ -198,16 +198,27 @@
         .message-text { font-size: 14px; }
         .message-image {
             max-width: 100%;
-            max-height: 200px;
+            max-height: 250px;
             border-radius: 12px;
             margin-top: 6px;
             cursor: pointer;
+            display: block;
         }
         .message-time { font-size: 10px; margin-top: 4px; opacity: 0.7; }
         .input-area {
-            padding: 16px;
+            padding: 12px 16px;
             background: white;
             border-top: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .input-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .input-row {
             display: flex;
             gap: 10px;
             align-items: center;
@@ -235,6 +246,40 @@
             border: none;
             border-radius: 25px;
             cursor: pointer;
+        }
+        .image-preview-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+        .image-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .cancel-image {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+        .loading-indicator {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         .emoji-picker-container {
             position: absolute;
@@ -314,11 +359,6 @@
             gap: 12px;
         }
         .error { color: red; font-size: 12px; text-align: center; margin-top: 8px; }
-        .image-preview {
-            max-width: 100px;
-            max-height: 100px;
-            border-radius: 8px;
-        }
         @media (max-width: 768px) {
             .sidebar { width: 280px; }
             .message-bubble { max-width: 85%; }
@@ -328,7 +368,6 @@
 </head>
 <body>
 <div class="app" id="app" style="display: none;">
-    <!-- Sidebar -->
     <div class="sidebar">
         <div class="profile">
             <div class="avatar" id="avatar" onclick="openProfileModal()"></div>
@@ -348,8 +387,6 @@
         </div>
         <div class="chats-list" id="chatsList"></div>
     </div>
-
-    <!-- Main chat -->
     <div class="main">
         <div class="chat-header" id="chatHeader" style="display: none;">
             <div class="chat-header-left">
@@ -367,11 +404,19 @@
         </div>
         <div class="messages" id="messages"></div>
         <div class="input-area" id="inputArea" style="display: none;">
-            <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
-            <button class="emoji-btn" onclick="document.getElementById('imageInput').click()">📷</button>
-            <input type="file" id="imageInput" accept="image/*" style="display: none;">
-            <input type="text" class="message-input" id="messageInput" placeholder="Сообщение...">
-            <button class="send-btn" onclick="sendMessage()">📤</button>
+            <div id="imagePreviewContainer" class="image-preview-area" style="display: none;">
+                <img id="imagePreview" class="image-preview">
+                <button class="cancel-image" onclick="cancelImage()">✖️</button>
+            </div>
+            <div class="input-row">
+                <div class="input-buttons">
+                    <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
+                    <button class="emoji-btn" onclick="document.getElementById('imageInput').click()">📷</button>
+                </div>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                <input type="text" class="message-input" id="messageInput" placeholder="Сообщение...">
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()">📤</button>
+            </div>
         </div>
         <div id="emojiPickerContainer" class="emoji-picker-container"></div>
     </div>
@@ -445,6 +490,7 @@
     let currentTab = 'chats';
     let userStatuses = {};
     let pollInterval = null;
+    let selectedImageFile = null;
 
     async function apiRequest(endpoint, method = 'GET', data = null) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
@@ -455,6 +501,71 @@
         if (!res.ok) throw new Error(json.error || 'Ошибка');
         return json;
     }
+
+    // Превью выбранного фото
+    document.getElementById('imageInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            selectedImageFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const preview = document.getElementById('imagePreview');
+                preview.src = ev.target.result;
+                document.getElementById('imagePreviewContainer').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    window.cancelImage = () => {
+        selectedImageFile = null;
+        document.getElementById('imageInput').value = '';
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+    };
+
+    window.sendMessage = async () => {
+        const text = document.getElementById('messageInput').value.trim();
+        const file = selectedImageFile;
+        
+        if (!text && !file) return;
+        if (!currentChat) return;
+        
+        const toId = currentChat.isSelf ? currentUser.userid : currentChat.userid;
+        
+        // Показываем загрузку на кнопке
+        const sendBtn = document.getElementById('sendBtn');
+        const originalText = sendBtn.innerHTML;
+        sendBtn.innerHTML = '⏳';
+        sendBtn.disabled = true;
+        
+        try {
+            let imageData = null;
+            if (file) {
+                imageData = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            const msg = await apiRequest('/messages', 'POST', { 
+                to: toId, 
+                text: text || (file ? '📷 Фото' : ''),
+                image: imageData 
+            });
+            messages.push(msg);
+            document.getElementById('messageInput').value = '';
+            cancelImage();
+            renderMessages();
+            renderCurrentList();
+            await loadData();
+        } catch(e) { 
+            alert(e.message); 
+        } finally {
+            sendBtn.innerHTML = originalText;
+            sendBtn.disabled = false;
+        }
+    };
 
     window.login = async () => {
         try {
@@ -666,7 +777,7 @@
                     </div>
                     <div class="chat-info">
                         <div class="chat-name">${escapeHtml(displayName)}</div>
-                        <div class="chat-last">${chat.lastMessage ? escapeHtml(chat.lastMessage.text || '📷 Изображение') : 'Нет сообщений'}</div>
+                        <div class="chat-last">${chat.lastMessage ? (chat.lastMessage.image ? '📷 Фото' : escapeHtml(chat.lastMessage.text)) : 'Нет сообщений'}</div>
                     </div>
                     <div>
                         <div class="chat-time">${chat.lastMessage ? formatTime(chat.lastMessage.createdAt) : ''}</div>
@@ -769,7 +880,7 @@
         container.innerHTML = chatMessages.map(msg => `
             <div class="message ${msg.from === currentUser.userid ? 'sent' : 'received'}">
                 <div class="message-bubble">
-                    <div class="message-text">${escapeHtml(msg.text || '')}</div>
+                    ${msg.text ? `<div class="message-text">${escapeHtml(msg.text)}</div>` : ''}
                     ${msg.image ? `<img src="${msg.image}" class="message-image" onclick="window.open('${msg.image}')">` : ''}
                     <div class="message-time">${formatTime(msg.createdAt)}</div>
                 </div>
@@ -777,37 +888,6 @@
         `).join('');
         container.scrollTop = container.scrollHeight;
     }
-
-    window.sendMessage = async () => {
-        const text = document.getElementById('messageInput').value.trim();
-        const fileInput = document.getElementById('imageInput');
-        const file = fileInput.files[0];
-        
-        let imageData = null;
-        if (file) {
-            imageData = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result);
-                reader.readAsDataURL(file);
-            });
-            fileInput.value = '';
-        }
-        
-        if (!text && !imageData) return;
-        const toId = currentChat.isSelf ? currentUser.userid : currentChat.userid;
-        try {
-            const msg = await apiRequest('/messages', 'POST', { 
-                to: toId, 
-                text: text || (imageData ? '📷 Изображение' : ''),
-                image: imageData 
-            });
-            messages.push(msg);
-            document.getElementById('messageInput').value = '';
-            renderMessages();
-            renderCurrentList();
-            await loadData();
-        } catch(e) { alert(e.message); }
-    };
 
     function formatTime(iso) {
         const date = new Date(iso);
