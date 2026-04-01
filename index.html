@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vexa Messenger — с эмодзи и картинками</title>
+    <title>Vexa Messenger — с анимациями и Alpine.js</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -33,6 +34,7 @@
             border-right: 1px solid #e0e0e0;
             display: flex;
             flex-direction: column;
+            transition: all 0.2s ease;
         }
         .profile {
             padding: 20px;
@@ -56,7 +58,9 @@
             color: white;
             font-weight: bold;
             font-size: 20px;
+            transition: transform 0.2s;
         }
+        .avatar:active { transform: scale(0.95); }
         .profile-info { flex: 1; }
         .display-name { font-weight: bold; font-size: 16px; }
         .username { font-size: 12px; color: #666; }
@@ -65,7 +69,9 @@
             border: none;
             font-size: 20px;
             cursor: pointer;
+            transition: transform 0.1s;
         }
+        .edit-btn:active { transform: scale(0.9); }
         .search {
             padding: 12px;
             border-bottom: 1px solid #e0e0e0;
@@ -76,7 +82,9 @@
             border: 1px solid #ddd;
             border-radius: 20px;
             outline: none;
+            transition: all 0.2s;
         }
+        .search input:focus { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.2); }
         .tabs {
             display: flex;
             border-bottom: 1px solid #e0e0e0;
@@ -87,6 +95,7 @@
             text-align: center;
             cursor: pointer;
             color: #666;
+            transition: all 0.2s;
         }
         .tab.active {
             color: #667eea;
@@ -104,8 +113,9 @@
             padding: 12px;
             cursor: pointer;
             border-bottom: 1px solid #e0e0e0;
+            transition: all 0.2s;
         }
-        .chat-item:hover { background: #e9ecef; }
+        .chat-item:hover { background: #e9ecef; transform: translateX(2px); }
         .chat-item.active { background: #e3f2fd; }
         .chat-avatar {
             width: 45px;
@@ -114,6 +124,7 @@
             background: #667eea;
             background-size: cover;
             position: relative;
+            transition: transform 0.1s;
         }
         .online-dot {
             position: absolute;
@@ -161,6 +172,7 @@
             border-radius: 50%;
             background: #667eea;
             background-size: cover;
+            transition: transform 0.2s;
         }
         .friend-actions {
             display: flex;
@@ -172,7 +184,9 @@
             border: none;
             cursor: pointer;
             font-size: 12px;
+            transition: all 0.1s;
         }
+        .friend-btn:active { transform: scale(0.95); }
         .friend-btn.add { background: #667eea; color: white; }
         .friend-btn.remove { background: #dc3545; color: white; }
         .messages {
@@ -184,6 +198,7 @@
         .message {
             margin-bottom: 12px;
             display: flex;
+            will-change: transform, opacity;
         }
         .message.sent { justify-content: flex-end; }
         .message-bubble {
@@ -231,14 +246,18 @@
             height: 44px;
             font-size: 24px;
             cursor: pointer;
+            transition: transform 0.1s;
         }
+        .emoji-btn:active { transform: scale(0.95); }
         .message-input {
             flex: 1;
             padding: 12px 16px;
             border: 1px solid #ddd;
             border-radius: 25px;
             outline: none;
+            transition: all 0.2s;
         }
+        .message-input:focus { border-color: #667eea; box-shadow: 0 0 0 2px rgba(102,126,234,0.2); }
         .send-btn {
             padding: 10px 20px;
             background: #667eea;
@@ -246,7 +265,9 @@
             border: none;
             border-radius: 25px;
             cursor: pointer;
+            transition: transform 0.1s;
         }
+        .send-btn:active { transform: scale(0.95); }
         .image-preview-area {
             display: flex;
             align-items: center;
@@ -280,9 +301,7 @@
             width: 350px;
             height: 400px;
         }
-        .emoji-picker-container.show {
-            display: block;
-        }
+        .emoji-picker-container.show { display: block; }
         .modal {
             position: fixed;
             top: 0;
@@ -302,7 +321,10 @@
             padding: 24px;
             width: 90%;
             max-width: 450px;
+            transform: scale(0.95);
+            transition: transform 0.2s;
         }
+        .modal.active .modal-content { transform: scale(1); }
         .modal-content input, .modal-content textarea {
             width: 100%;
             padding: 10px;
@@ -327,7 +349,9 @@
             border-radius: 10px;
             cursor: pointer;
             font-weight: bold;
+            transition: all 0.1s;
         }
+        button.btn:active { transform: scale(0.98); }
         .btn-primary { background: #667eea; color: white; }
         .btn-secondary { background: #f0f0f0; }
         .search-results {
@@ -344,8 +368,26 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            transition: all 0.1s;
         }
+        .search-result:active { transform: scale(0.98); background: #f0f0f0; }
         .error { color: red; font-size: 12px; text-align: center; margin-top: 8px; }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message.animate-sent { animation: slideInRight 0.25s ease-out; }
+        .message.animate-received { animation: slideInLeft 0.3s ease-out; }
+        .chat-item { transition: all 0.2s; }
+        .sidebar, .main { transition: all 0.2s; }
         @media (max-width: 768px) {
             .sidebar { width: 280px; }
             .message-bubble { max-width: 85%; }
@@ -357,20 +399,20 @@
 <div class="app" id="app" style="display: none;">
     <div class="sidebar">
         <div class="profile">
-            <div class="avatar" id="avatar" onclick="openProfileModal()"></div>
+            <div class="avatar" id="avatar" @click="openProfileModal()"></div>
             <div class="profile-info">
                 <div class="display-name" id="displayName"></div>
                 <div class="username" id="username"></div>
             </div>
-            <button class="edit-btn" onclick="openProfileModal()">✏️</button>
+            <button class="edit-btn" @click="openProfileModal()">✏️</button>
         </div>
         <div class="search">
             <input type="text" id="searchInput" placeholder="🔍 Найти пользователя...">
             <div id="searchResults" class="search-results" style="display: none;"></div>
         </div>
         <div class="tabs">
-            <div class="tab active" onclick="switchTab('chats')">💬 Чаты</div>
-            <div class="tab" onclick="switchTab('friends')">👥 Друзья</div>
+            <div class="tab" :class="{ active: currentTab === 'chats' }" @click="switchTab('chats')">💬 Чаты</div>
+            <div class="tab" :class="{ active: currentTab === 'friends' }" @click="switchTab('friends')">👥 Друзья</div>
         </div>
         <div class="chats-list" id="chatsList"></div>
     </div>
@@ -384,48 +426,47 @@
                 </div>
             </div>
             <div class="friend-actions" id="friendActions">
-                <button class="friend-btn add" id="addFriendBtn" onclick="toggleFriend()">➕ В друзья</button>
-                <button class="friend-btn remove" id="removeFriendBtn" onclick="toggleFriend()" style="display: none;">➖ Удалить</button>
-                <button class="friend-btn" onclick="openCustomNameModal()">✏️ Своё имя</button>
+                <button class="friend-btn add" id="addFriendBtn" @click="toggleFriend()">➕ В друзья</button>
+                <button class="friend-btn remove" id="removeFriendBtn" @click="toggleFriend()" style="display: none;">➖ Удалить</button>
+                <button class="friend-btn" @click="openCustomNameModal()">✏️ Своё имя</button>
             </div>
         </div>
         <div class="messages" id="messages"></div>
         <div class="input-area" id="inputArea" style="display: none;">
             <div id="imagePreviewContainer" class="image-preview-area" style="display: none;">
                 <img id="imagePreview" class="image-preview">
-                <button class="cancel-image" onclick="cancelImage()">✖️</button>
+                <button class="cancel-image" @click="cancelImage()">✖️</button>
             </div>
             <div class="input-row">
                 <div class="input-buttons">
-                    <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
-                    <button class="emoji-btn" onclick="document.getElementById('imageInput').click()">📷</button>
+                    <button class="emoji-btn" @click="toggleEmojiPicker()">😊</button>
+                    <button class="emoji-btn" @click="document.getElementById('imageInput').click()">📷</button>
                 </div>
                 <input type="file" id="imageInput" accept="image/*" style="display: none;">
                 <input type="text" class="message-input" id="messageInput" placeholder="Сообщение...">
-                <button class="send-btn" id="sendBtn" onclick="sendMessage()">📤</button>
+                <button class="send-btn" id="sendBtn" @click="sendMessage()">📤</button>
             </div>
         </div>
         <div id="emojiPickerContainer" class="emoji-picker-container"></div>
     </div>
 </div>
 
-<!-- Модалки -->
 <div class="modal" id="authModal">
     <div class="modal-content">
         <h2 id="authTitle">Вход в Vexa</h2>
         <div id="loginForm">
             <input type="email" id="loginEmail" placeholder="Email">
             <input type="password" id="loginPassword" placeholder="Пароль">
-            <button class="btn btn-primary" onclick="login()">Войти</button>
-            <button class="btn btn-secondary" onclick="showRegister()">Создать аккаунт</button>
+            <button class="btn btn-primary" @click="login()">Войти</button>
+            <button class="btn btn-secondary" @click="showRegister()">Создать аккаунт</button>
         </div>
         <div id="registerForm" style="display: none;">
             <input type="text" id="regName" placeholder="Отображаемое имя">
             <input type="text" id="regUsername" placeholder="Username (латиница)">
             <input type="email" id="regEmail" placeholder="Email">
             <input type="password" id="regPassword" placeholder="Пароль">
-            <button class="btn btn-primary" onclick="register()">Зарегистрироваться</button>
-            <button class="btn btn-secondary" onclick="showLogin()">Уже есть аккаунт?</button>
+            <button class="btn btn-primary" @click="register()">Зарегистрироваться</button>
+            <button class="btn btn-secondary" @click="showLogin()">Уже есть аккаунт?</button>
         </div>
         <div id="authError" class="error"></div>
     </div>
@@ -434,13 +475,13 @@
 <div class="modal" id="profileModal">
     <div class="modal-content">
         <h2>Редактировать профиль</h2>
-        <div class="avatar-preview" id="avatarPreview" onclick="document.getElementById('avatarFile').click()"></div>
-        <input type="file" id="avatarFile" style="display: none;" accept="image/*" onchange="previewAvatar(this)">
+        <div class="avatar-preview" id="avatarPreview" @click="document.getElementById('avatarFile').click()"></div>
+        <input type="file" id="avatarFile" style="display: none;" accept="image/*" @change="previewAvatar(this)">
         <input type="text" id="editName" placeholder="Отображаемое имя">
         <input type="text" id="editUsername" placeholder="Username">
         <textarea id="editBio" rows="3" placeholder="О себе"></textarea>
-        <button class="btn btn-primary" onclick="saveProfile()">Сохранить</button>
-        <button class="btn btn-secondary" onclick="closeProfileModal()">Отмена</button>
+        <button class="btn btn-primary" @click="saveProfile()">Сохранить</button>
+        <button class="btn btn-secondary" @click="closeProfileModal()">Отмена</button>
     </div>
 </div>
 
@@ -448,8 +489,8 @@
     <div class="modal-content">
         <h2>Как назвать друга?</h2>
         <input type="text" id="customNameInput" placeholder="Имя для друга">
-        <button class="btn btn-primary" onclick="saveCustomName()">Сохранить</button>
-        <button class="btn btn-secondary" onclick="closeCustomNameModal()">Отмена</button>
+        <button class="btn btn-primary" @click="saveCustomName()">Сохранить</button>
+        <button class="btn btn-secondary" @click="closeCustomNameModal()">Отмена</button>
     </div>
 </div>
 
@@ -868,12 +909,18 @@
             return;
         }
         
-        container.innerHTML = chatMessages.map(msg => {
+        // Сохраняем предыдущее количество для анимации
+        const oldCount = container.children.length;
+        
+        container.innerHTML = chatMessages.map((msg, index) => {
             const hasImage = msg.image && msg.image.startsWith('data:image');
             const displayText = msg.text && msg.text !== '📷 Фото' && msg.text !== '📷 Изображение' ? escapeHtml(msg.text) : '';
+            const isOwn = msg.from === currentUser.userid;
+            const isNew = index >= oldCount;
+            const animationClass = isNew ? (isOwn ? 'animate-sent' : 'animate-received') : '';
             
             return `
-                <div class="message ${msg.from === currentUser.userid ? 'sent' : 'received'}">
+                <div class="message ${isOwn ? 'sent' : 'received'} ${animationClass}">
                     <div class="message-bubble">
                         ${displayText ? `<div class="message-text">${displayText}</div>` : ''}
                         ${hasImage ? `<img src="${msg.image}" class="message-image" onclick="window.open('${msg.image}')" loading="lazy">` : ''}
