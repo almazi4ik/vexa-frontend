@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vexa Messenger — каналы, баны, стикеры</title>
+    <title>Vexa Messenger — Группы</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
@@ -192,16 +192,6 @@
             border-radius: 50%;
             background: #667eea;
             background-size: cover;
-        }
-        .typing-status {
-            font-size: 12px;
-            color: #667eea;
-            margin-top: 2px;
-            animation: pulse 0.8s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
         }
         .chat-actions {
             display: flex;
@@ -410,6 +400,17 @@
             gap: 12px;
         }
         .error { color: red; font-size: 12px; text-align: center; margin-top: 8px; }
+        .members-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .member-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
         @keyframes slideInRight {
             from { opacity: 0; transform: translateX(30px); }
             to { opacity: 1; transform: translateX(0); }
@@ -455,12 +456,12 @@
                 <button class="edit-btn" onclick="openProfileModal()">✏️</button>
             </div>
             <div class="search">
-                <input type="text" id="searchInput" placeholder="🔍 Найти пользователя или канал...">
+                <input type="text" id="searchInput" placeholder="🔍 Найти пользователя...">
                 <div id="searchResults" class="search-results" style="display: none;"></div>
             </div>
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('chats')">💬 Чаты</div>
-                <div class="tab" onclick="switchTab('channels')">📢 Каналы</div>
+                <div class="tab" onclick="switchTab('groups')">👥 Группы</div>
             </div>
             <div class="chats-list" id="chatsList"></div>
         </div>
@@ -470,7 +471,6 @@
                     <div class="chat-header-avatar" id="chatAvatar"></div>
                     <div>
                         <h3 id="chatName"></h3>
-                        <div id="typingStatus" class="typing-status" style="display: none;">✍️ печатает...</div>
                         <p id="chatUsername" style="font-size: 12px; color: #666;"></p>
                     </div>
                 </div>
@@ -488,7 +488,7 @@
                     <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
                     <button class="emoji-btn" onclick="document.getElementById('imageInput').click()">📷</button>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;">
-                    <input type="text" class="message-input" id="messageInput" placeholder="Сообщение..." onkeyup="onTyping()">
+                    <input type="text" class="message-input" id="messageInput" placeholder="Сообщение...">
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()">📤</button>
                 </div>
             </div>
@@ -505,7 +505,7 @@
 
     <div id="chatMenu" class="message-menu" style="min-width: 180px;">
         <button onclick="clearChat()">🗑️ Очистить чат</button>
-        <button id="banUserBtn" onclick="banUser()" class="danger">🚫 Забанить</button>
+        <button id="addMemberBtn" onclick="showAddMemberModal()" style="display: none;">👥 Добавить участника</button>
         <button id="deleteChatBtn" onclick="deleteChat()" class="danger">❌ Удалить чат</button>
         <button id="pinChatBtn" onclick="pinChat()">📌 Закрепить чат</button>
     </div>
@@ -544,13 +544,22 @@
         </div>
     </div>
 
-    <div class="modal" id="createChannelModal">
+    <div class="modal" id="createGroupModal">
         <div class="modal-content">
-            <h2>Создать канал</h2>
-            <input type="text" id="channelName" placeholder="Название канала">
-            <textarea id="channelDesc" rows="2" placeholder="Описание"></textarea>
-            <button class="btn btn-primary" onclick="createChannel()">Создать</button>
-            <button class="btn btn-secondary" onclick="closeChannelModal()">Отмена</button>
+            <h2>Создать группу</h2>
+            <input type="text" id="groupName" placeholder="Название группы">
+            <textarea id="groupDesc" rows="2" placeholder="Описание"></textarea>
+            <button class="btn btn-primary" onclick="createGroup()">Создать</button>
+            <button class="btn btn-secondary" onclick="closeGroupModal()">Отмена</button>
+        </div>
+    </div>
+
+    <div class="modal" id="addMemberModal">
+        <div class="modal-content">
+            <h2>Добавить участника</h2>
+            <input type="text" id="memberSearch" placeholder="Поиск пользователя...">
+            <div id="memberSearchResults" class="search-results"></div>
+            <button class="btn btn-secondary" onclick="closeAddMemberModal()">Отмена</button>
         </div>
     </div>
 
@@ -560,15 +569,6 @@
             <textarea id="editMessageText" rows="3"></textarea>
             <button class="btn btn-primary" onclick="saveEditedMessage()">Сохранить</button>
             <button class="btn btn-secondary" onclick="closeEditModal()">Отмена</button>
-        </div>
-    </div>
-
-    <div class="modal" id="banModal">
-        <div class="modal-content">
-            <h2>Забанить пользователя</h2>
-            <input type="text" id="banReason" placeholder="Причина (необязательно)">
-            <button class="btn btn-primary" onclick="confirmBan()">Забанить</button>
-            <button class="btn btn-secondary" onclick="closeBanModal()">Отмена</button>
         </div>
     </div>
 
@@ -590,13 +590,12 @@
         let currentUser = null;
         let users = [];
         let messages = [];
-        let channels = [];
-        let currentChat = null; // { type: 'user', id } или { type: 'channel', id, name }
+        let groups = [];
+        let currentChat = null;
         let currentTab = 'chats';
         let userStatuses = {};
         let pollInterval = null;
         let selectedImageFile = null;
-        let typingTimeout = null;
         let currentMessageId = null;
         let currentMessageIsOwn = false;
         let pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + (currentUser?.userid || '')) || '[]');
@@ -616,24 +615,6 @@
             if (!res.ok) throw new Error(json.error || 'Ошибка');
             return json;
         }
-
-        window.onTyping = () => {
-            if (!currentChat || currentChat.type !== 'user') return;
-            if (typingTimeout) clearTimeout(typingTimeout);
-            fetch(`${API}/typing/${currentChat.id}`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }).catch(e=>console.log);
-            typingTimeout = setTimeout(() => {
-                fetch(`${API}/typing/stop/${currentChat.id}`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }).catch(e=>console.log);
-            }, 2000);
-        };
-
-        let lastTyping = {};
-        function checkTyping() {
-            if (!currentChat || currentChat.type !== 'user') { document.getElementById('typingStatus').style.display = 'none'; return; }
-            const now = Date.now();
-            const isTyping = lastTyping[currentChat.id] && (now - lastTyping[currentChat.id] < 3000);
-            document.getElementById('typingStatus').style.display = isTyping ? 'block' : 'none';
-        }
-        setInterval(checkTyping, 1000);
 
         window.showMessageMenu = (event, msgId, isOwn, text, isPinned) => {
             event.stopPropagation();
@@ -692,10 +673,9 @@
 
         window.showChatMenu = () => {
             const menu = document.getElementById('chatMenu');
-            const isUser = currentChat?.type === 'user';
-            document.getElementById('banUserBtn').style.display = isUser ? 'block' : 'none';
-            document.getElementById('deleteChatBtn').style.display = isUser ? 'block' : 'none';
-            const isPinned = pinnedChats.includes(currentChat?.type === 'user' ? `user_${currentChat.id}` : `channel_${currentChat.id}`);
+            const isGroup = currentChat?.type === 'group';
+            document.getElementById('addMemberBtn').style.display = isGroup ? 'block' : 'none';
+            const isPinned = pinnedChats.includes(`${currentChat?.type}_${currentChat?.id}`);
             document.getElementById('pinChatBtn').innerHTML = isPinned ? '📌 Открепить чат' : '📌 Закрепить чат';
             menu.style.display = 'block';
             menu.style.right = '20px';
@@ -705,24 +685,16 @@
         window.clearChat = async () => {
             if (confirm('Очистить все сообщения в этом чате?')) {
                 try {
-                    await apiRequest(`/messages/clear/${currentChat.id}`, 'DELETE');
+                    if (currentChat.type === 'user') {
+                        await apiRequest(`/messages/clear/${currentChat.id}`, 'DELETE');
+                    } else {
+                        await apiRequest(`/groups/${currentChat.id}/messages`, 'DELETE');
+                    }
                     await loadData();
                     renderMessages();
                 } catch(e) { alert(e.message); }
             }
             document.getElementById('chatMenu').style.display = 'none';
-        };
-        window.banUser = () => {
-            document.getElementById('banModal').classList.add('active');
-            document.getElementById('chatMenu').style.display = 'none';
-        };
-        window.confirmBan = async () => {
-            const reason = document.getElementById('banReason').value;
-            try {
-                await apiRequest('/bans', 'POST', { userId: currentChat.id, reason });
-                alert('Пользователь забанен');
-                closeBanModal();
-            } catch(e) { alert(e.message); }
         };
         window.deleteChat = async () => {
             if (confirm('Удалить чат? Все сообщения будут удалены.')) {
@@ -735,7 +707,7 @@
             }
         };
         window.pinChat = () => {
-            const id = currentChat.type === 'user' ? `user_${currentChat.id}` : `channel_${currentChat.id}`;
+            const id = `${currentChat.type}_${currentChat.id}`;
             const index = pinnedChats.indexOf(id);
             if (index === -1) pinnedChats.push(id);
             else pinnedChats.splice(index, 1);
@@ -744,21 +716,55 @@
             document.getElementById('chatMenu').style.display = 'none';
         };
 
-        window.openChannelModal = () => { document.getElementById('createChannelModal').classList.add('active'); };
-        window.closeChannelModal = () => { document.getElementById('createChannelModal').classList.remove('active'); };
-        window.createChannel = async () => {
-            const name = document.getElementById('channelName').value;
-            const description = document.getElementById('channelDesc').value;
+        window.showAddMemberModal = () => {
+            document.getElementById('addMemberModal').classList.add('active');
+            document.getElementById('memberSearch').value = '';
+            document.getElementById('memberSearchResults').innerHTML = '';
+        };
+        window.closeAddMemberModal = () => {
+            document.getElementById('addMemberModal').classList.remove('active');
+        };
+        
+        document.getElementById('memberSearch').addEventListener('input', async () => {
+            const query = document.getElementById('memberSearch').value.toLowerCase();
+            const resultsDiv = document.getElementById('memberSearchResults');
+            if (!query) { resultsDiv.innerHTML = ''; return; }
+            const results = users.filter(u => u.userid !== currentUser.userid && (u.username.includes(query) || u.displayname.toLowerCase().includes(query)));
+            if (results.length) {
+                resultsDiv.innerHTML = results.map(u => `
+                    <div class="search-result" onclick="addMemberToGroup('${u.userid}', '${escapeHtml(u.displayname)}')">
+                        <div class="chat-avatar" style="${u.avatar ? `background-image: url(${u.avatar});` : ''} width:40px;height:40px;">${!u.avatar ? u.displayname.charAt(0) : ''}</div>
+                        <div><strong>${escapeHtml(u.displayname)}</strong><br><small>@${escapeHtml(u.username)}</small></div>
+                    </div>
+                `).join('');
+            } else {
+                resultsDiv.innerHTML = '<div style="padding:10px;text-align:center;">Не найдено</div>';
+            }
+        });
+
+        window.addMemberToGroup = async (userId, name) => {
+            try {
+                await apiRequest(`/groups/${currentChat.id}/members`, 'POST', { userId });
+                alert(`${name} добавлен в группу`);
+                closeAddMemberModal();
+                await loadData();
+            } catch(e) { alert(e.message); }
+        };
+
+        window.openGroupModal = () => { document.getElementById('createGroupModal').classList.add('active'); };
+        window.closeGroupModal = () => { document.getElementById('createGroupModal').classList.remove('active'); };
+        window.createGroup = async () => {
+            const name = document.getElementById('groupName').value;
+            const description = document.getElementById('groupDesc').value;
             if (!name) return;
             try {
-                await apiRequest('/channels', 'POST', { name, description });
-                alert('Канал создан');
-                closeChannelModal();
+                await apiRequest('/groups', 'POST', { name, description });
+                alert('Группа создана');
+                closeGroupModal();
                 await loadData();
             } catch(e) { alert(e.message); }
         };
         window.closeEditModal = () => { document.getElementById('editMessageModal').classList.remove('active'); };
-        window.closeBanModal = () => { document.getElementById('banModal').classList.remove('active'); };
 
         document.getElementById('imageInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -797,7 +803,7 @@
                     endpoint = '/messages';
                     body = { to: currentChat.id, text: text || '', image: imageData };
                 } else {
-                    endpoint = `/channels/${currentChat.id}/messages`;
+                    endpoint = `/groups/${currentChat.id}/messages`;
                     body = { text: text || '', image: imageData };
                 }
                 await apiRequest(endpoint, 'POST', body);
@@ -849,7 +855,7 @@
             try {
                 users = await apiRequest('/users');
                 messages = await apiRequest('/messages');
-                channels = await apiRequest('/channels');
+                groups = await apiRequest('/groups');
                 const statusData = await apiRequest('/status');
                 userStatuses = {};
                 statusData.forEach(u => { userStatuses[u.userid] = { isOnline: u.isonline, lastSeen: u.lastseen }; });
@@ -898,27 +904,31 @@
 
         function getDisplayName(user) { return user.displayname; }
 
-        function getChats() {
+        function getAllChats() {
             const userMessages = messages.filter(m => m.from === currentUser.userid || m.to === currentUser.userid);
             const chatUsers = new Set();
             userMessages.forEach(msg => {
                 if (msg.from === currentUser.userid) chatUsers.add(msg.to);
                 else chatUsers.add(msg.from);
             });
-            const chatsList = Array.from(chatUsers).map(userId => {
+            
+            const chatsList = [{ type: 'user', id: currentUser.userid, name: '📝 Заметки', avatar: currentUser.avatar, lastMessage: null, unreadCount: 0, isSelf: true }];
+            
+            Array.from(chatUsers).forEach(userId => {
+                if (userId === currentUser.userid) return;
                 const user = users.find(u => u.userid === userId);
-                if (!user) return null;
+                if (!user) return;
                 const lastMessage = userMessages.filter(m => (m.from === userId && m.to === currentUser.userid) || (m.to === userId && m.from === currentUser.userid))
                     .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
                 const unreadCount = messages.filter(m => m.from === userId && m.to === currentUser.userid && !m.isRead).length;
-                return { type: 'user', id: user.userid, name: user.displayname, avatar: user.avatar, lastMessage, unreadCount };
-            }).filter(c => c);
+                chatsList.push({ type: 'user', id: user.userid, name: user.displayname, avatar: user.avatar, lastMessage, unreadCount, isSelf: false });
+            });
             
-            const channelChats = channels.map(ch => ({
-                type: 'channel', id: ch.id, name: ch.name, avatar: ch.avatar, lastMessage: null, unreadCount: 0
+            const groupChats = groups.map(g => ({
+                type: 'group', id: g.id, name: g.name, avatar: g.avatar, lastMessage: null, unreadCount: 0, isSelf: false
             }));
             
-            let all = [...chatsList, ...channelChats];
+            let all = [...chatsList, ...groupChats];
             all.sort((a,b) => {
                 const aPinned = pinnedChats.includes(`${a.type}_${a.id}`);
                 const bPinned = pinnedChats.includes(`${b.type}_${b.id}`);
@@ -932,14 +942,14 @@
 
         function renderCurrentList() {
             if (currentTab === 'chats') renderChats();
-            else renderChannels();
+            else renderGroups();
         }
 
         function renderChats() {
-            const chats = getChats();
+            const chats = getAllChats();
             const container = document.getElementById('chatsList');
-            if (!chats.length) {
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Нет чатов<br><button onclick="openChannelModal()" style="margin-top:10px;padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
+            if (chats.length === 0) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Нет чатов</div>';
                 return;
             }
             container.innerHTML = chats.map(chat => {
@@ -968,27 +978,26 @@
                     </div>
                 `;
             }).join('');
-            container.innerHTML += '<div style="padding:12px;text-align:center;"><button onclick="openChannelModal()" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
         }
 
-        function renderChannels() {
+        function renderGroups() {
             const container = document.getElementById('chatsList');
-            if (!channels.length) {
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Нет каналов<br><button onclick="openChannelModal()" style="margin-top:10px;padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
+            if (!groups.length) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Нет групп<br><button onclick="openGroupModal()" style="margin-top:10px;padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">👥 Создать группу</button></div>';
                 return;
             }
-            container.innerHTML = channels.map(ch => `
-                <div class="chat-item" onclick="selectChat('channel', '${ch.id}', '${escapeHtml(ch.name)}')">
-                    <div class="chat-avatar" style="${ch.avatar ? `background-image: url(${ch.avatar});` : ''}">
-                        ${!ch.avatar ? (ch.name.charAt(0) || 'U') : ''}
+            container.innerHTML = groups.map(g => `
+                <div class="chat-item" onclick="selectChat('group', '${g.id}', '${escapeHtml(g.name)}')">
+                    <div class="chat-avatar" style="${g.avatar ? `background-image: url(${g.avatar});` : ''}">
+                        ${!g.avatar ? (g.name.charAt(0) || 'U') : ''}
                     </div>
                     <div class="chat-info">
-                        <div class="chat-name">📢 ${escapeHtml(ch.name)}</div>
-                        <div class="chat-last">${escapeHtml(ch.description || 'Нет описания')}</div>
+                        <div class="chat-name">👥 ${escapeHtml(g.name)}</div>
+                        <div class="chat-last">${escapeHtml(g.description || 'Нет описания')}</div>
                     </div>
                 </div>
             `).join('');
-            container.innerHTML += '<div style="padding:12px;text-align:center;"><button onclick="openChannelModal()" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
+            container.innerHTML += '<div style="padding:12px;text-align:center;"><button onclick="openGroupModal()" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">👥 Создать группу</button></div>';
         }
 
         window.selectChat = (type, id, name) => {
@@ -998,12 +1007,12 @@
             document.getElementById('chatHeader').style.display = 'flex';
             document.getElementById('inputArea').style.display = 'flex';
             const avatarEl = document.getElementById('chatAvatar');
-            const user = type === 'user' ? users.find(u => u.userid === id) : null;
-            if (type === 'user' && user?.avatar) { avatarEl.style.backgroundImage = `url(${user.avatar})`; avatarEl.innerText = ''; }
+            const chat = type === 'user' ? users.find(u => u.userid === id) : groups.find(g => g.id == id);
+            if (chat?.avatar) { avatarEl.style.backgroundImage = `url(${chat.avatar})`; avatarEl.innerText = ''; }
             else { avatarEl.style.backgroundImage = ''; avatarEl.innerText = name.charAt(0).toUpperCase(); }
             document.getElementById('chatName').innerText = name;
-            document.getElementById('chatUsername').innerHTML = type === 'user' ? `@${user?.username || ''}` : 'Канал';
-            if (type === 'user') markMessagesAsRead(id);
+            document.getElementById('chatUsername').innerHTML = type === 'user' ? `@${chat?.username || ''}` : 'Группа';
+            if (type === 'user' && id !== currentUser.userid) markMessagesAsRead(id);
         };
 
         async function markMessagesAsRead(fromId) {
@@ -1023,8 +1032,8 @@
                     (m.to === currentUser.userid && m.from === currentChat.id)
                 ).sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
             } else {
-                const channelMsgs = await apiRequest(`/channels/${currentChat.id}/messages`);
-                chatMessages = channelMsgs.sort((a,b) => new Date(a.createdat) - new Date(b.createdat));
+                const groupMsgs = await apiRequest(`/groups/${currentChat.id}/messages`);
+                chatMessages = groupMsgs.sort((a,b) => new Date(a.createdat) - new Date(b.createdat));
             }
             
             const pinned = chatMessages.filter(m => pinnedMessages.includes(m.id));
@@ -1042,9 +1051,12 @@
                 const displayText = msg.text && msg.text !== '📷 Фото' && msg.text !== '📷 Изображение' ? escapeHtml(msg.text) : '';
                 const isOwn = msg.from === currentUser.userid;
                 const isPinned = pinnedMessages.includes(msg.id);
+                const sender = users.find(u => u.userid === msg.from);
+                const senderName = sender ? sender.displayname : 'Пользователь';
                 return `
                     <div class="message ${isOwn ? 'sent' : 'received'}" onclick="showMessageMenu(event, ${msg.id}, ${isOwn}, '${escapeHtml(msg.text || '').replace(/'/g, "\\'")}', ${isPinned})">
                         <div class="message-bubble">
+                            ${!isOwn && currentChat.type === 'group' ? `<div style="font-size:11px; opacity:0.7; margin-bottom:4px;">${escapeHtml(senderName)}</div>` : ''}
                             ${isPinned ? '📌 ' : ''}
                             ${displayText ? `<div class="message-text">${displayText}</div>` : ''}
                             ${hasImage ? `<img src="${msg.image}" class="message-image" onclick="event.stopPropagation();window.open('${msg.image}')" loading="lazy">` : ''}
@@ -1096,7 +1108,7 @@
         window.switchTab = (tab) => {
             currentTab = tab;
             document.querySelectorAll('.tab').forEach((t, i) => {
-                if ((tab === 'chats' && i === 0) || (tab === 'channels' && i === 1)) t.classList.add('active');
+                if ((tab === 'chats' && i === 0) || (tab === 'groups' && i === 1)) t.classList.add('active');
                 else t.classList.remove('active');
             });
             renderCurrentList();
