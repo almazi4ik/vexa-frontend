@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Vexa Messenger — печатает, меню сообщений, каналы</title>
+    <title>Vexa Messenger — каналы, баны, стикеры</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/emoji-picker-element@1.20.0/dist/index.css">
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
@@ -17,8 +17,6 @@
             align-items: center;
             padding: 20px;
         }
-        
-        /* СТАРТОВЫЙ ЭКРАН */
         .splash-screen {
             position: fixed;
             top: 0;
@@ -32,16 +30,9 @@
             z-index: 9999;
             transition: opacity 0.6s ease;
         }
-        .splash-screen.hide {
-            opacity: 0;
-            visibility: hidden;
-        }
-        .splash-content {
-            animation: fadeInScale 0.5s ease-out;
-        }
-        .splash-logo {
-            animation: gentlePulse 1.2s ease-in-out infinite;
-        }
+        .splash-screen.hide { opacity: 0; visibility: hidden; }
+        .splash-content { animation: fadeInScale 0.5s ease-out; }
+        .splash-logo { animation: gentlePulse 1.2s ease-in-out infinite; }
         @keyframes fadeInScale {
             0% { opacity: 0; transform: scale(0.85); }
             100% { opacity: 1; transform: scale(1); }
@@ -50,8 +41,6 @@
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.02); }
         }
-        
-        /* ОСНОВНОЙ ИНТЕРФЕЙС */
         .app {
             width: 100%;
             max-width: 1300px;
@@ -66,11 +55,7 @@
             transform: scale(0.97) translateY(10px);
             transition: opacity 0.6s cubic-bezier(0.34, 1.2, 0.64, 1), transform 0.6s cubic-bezier(0.34, 1.2, 0.64, 1);
         }
-        .app.visible {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-        }
-        
+        .app.visible { opacity: 1; transform: scale(1) translateY(0); }
         .sidebar {
             width: 320px;
             background: #f8f9fa;
@@ -148,8 +133,9 @@
             padding: 12px;
             cursor: pointer;
             border-bottom: 1px solid #e0e0e0;
+            transition: all 0.2s;
         }
-        .chat-item:hover { background: #e9ecef; }
+        .chat-item:hover { background: #e9ecef; transform: translateX(2px); }
         .chat-item.active { background: #e3f2fd; }
         .chat-avatar {
             width: 45px;
@@ -198,6 +184,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            cursor: pointer;
         }
         .chat-header-avatar {
             width: 45px;
@@ -216,19 +203,20 @@
             0%, 100% { opacity: 0.6; }
             50% { opacity: 1; }
         }
-        .friend-actions {
+        .chat-actions {
             display: flex;
             gap: 8px;
         }
-        .friend-btn {
-            padding: 6px 12px;
-            border-radius: 20px;
+        .icon-btn {
+            background: none;
             border: none;
+            font-size: 20px;
             cursor: pointer;
-            font-size: 12px;
+            padding: 6px;
+            border-radius: 50%;
+            transition: background 0.2s;
         }
-        .friend-btn.add { background: #667eea; color: white; }
-        .friend-btn.remove { background: #dc3545; color: white; }
+        .icon-btn:hover { background: #f0f0f0; }
         .messages {
             flex: 1;
             overflow-y: auto;
@@ -264,8 +252,6 @@
             display: block;
         }
         .message-time { font-size: 10px; margin-top: 4px; opacity: 0.7; }
-        
-        /* Меню сообщения */
         .message-menu {
             position: fixed;
             background: white;
@@ -288,7 +274,6 @@
         }
         .message-menu button:hover { background: #f0f0f0; }
         .message-menu .danger { color: #dc3545; }
-        
         .input-area {
             padding: 12px 16px;
             background: white;
@@ -296,11 +281,6 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-        }
-        .input-buttons {
-            display: flex;
-            gap: 10px;
-            align-items: center;
         }
         .input-row {
             display: flex;
@@ -315,7 +295,9 @@
             height: 44px;
             font-size: 24px;
             cursor: pointer;
+            transition: transform 0.1s;
         }
+        .emoji-btn:active { transform: scale(0.95); }
         .message-input {
             flex: 1;
             padding: 12px 16px;
@@ -428,7 +410,6 @@
             gap: 12px;
         }
         .error { color: red; font-size: 12px; text-align: center; margin-top: 8px; }
-        
         @keyframes slideInRight {
             from { opacity: 0; transform: translateX(30px); }
             to { opacity: 1; transform: translateX(0); }
@@ -439,7 +420,6 @@
         }
         .message.animate-sent { animation: slideInRight 0.25s ease-out; }
         .message.animate-received { animation: slideInLeft 0.3s ease-out; }
-        
         @media (max-width: 768px) {
             .sidebar { width: 280px; }
             .message-bubble { max-width: 85%; }
@@ -448,35 +428,17 @@
     </style>
 </head>
 <body>
-    <!-- СТАРТОВЫЙ ЭКРАН -->
     <div id="splash" class="splash-screen">
         <div class="splash-content">
             <div class="splash-logo">
                 <svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#ffffff"/>
-                            <stop offset="100%" stop-color="#f0f0f0"/>
-                        </linearGradient>
-                    </defs>
+                    <defs><linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#f0f0f0"/></linearGradient></defs>
                     <rect width="100" height="100" rx="28" fill="url(#logoGrad)" filter="url(#shadow)"/>
                     <path d="M30 35 L50 70 L70 35" stroke="#667eea" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                     <path d="M30 35 L50 70 L70 35" stroke="#764ba2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.6"/>
                     <circle cx="30" cy="35" r="3" fill="#667eea"/>
                     <circle cx="70" cy="35" r="3" fill="#764ba2"/>
-                    <defs>
-                        <filter id="shadow" x="-0.2" y="-0.2" width="1.4" height="1.4">
-                            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
-                            <feOffset dx="2" dy="4"/>
-                            <feComponentTransfer>
-                                <feFuncA type="linear" slope="0.3"/>
-                            </feComponentTransfer>
-                            <feMerge>
-                                <feMergeNode/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                    </defs>
+                    <defs><filter id="shadow"><feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dx="2" dy="4"/><feComponentTransfer><feFuncA type="linear" slope="0.3"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
                 </svg>
             </div>
         </div>
@@ -493,18 +455,18 @@
                 <button class="edit-btn" onclick="openProfileModal()">✏️</button>
             </div>
             <div class="search">
-                <input type="text" id="searchInput" placeholder="🔍 Найти пользователя...">
+                <input type="text" id="searchInput" placeholder="🔍 Найти пользователя или канал...">
                 <div id="searchResults" class="search-results" style="display: none;"></div>
             </div>
             <div class="tabs">
                 <div class="tab active" onclick="switchTab('chats')">💬 Чаты</div>
-                <div class="tab" onclick="switchTab('friends')">👥 Друзья</div>
+                <div class="tab" onclick="switchTab('channels')">📢 Каналы</div>
             </div>
             <div class="chats-list" id="chatsList"></div>
         </div>
         <div class="main">
             <div class="chat-header" id="chatHeader" style="display: none;">
-                <div class="chat-header-left">
+                <div class="chat-header-left" id="chatHeaderLeft">
                     <div class="chat-header-avatar" id="chatAvatar"></div>
                     <div>
                         <h3 id="chatName"></h3>
@@ -512,10 +474,8 @@
                         <p id="chatUsername" style="font-size: 12px; color: #666;"></p>
                     </div>
                 </div>
-                <div class="friend-actions" id="friendActions">
-                    <button class="friend-btn add" id="addFriendBtn" onclick="toggleFriend()">➕ В друзья</button>
-                    <button class="friend-btn remove" id="removeFriendBtn" onclick="toggleFriend()" style="display: none;">➖ Удалить</button>
-                    <button class="friend-btn" onclick="openCustomNameModal()">✏️ Своё имя</button>
+                <div class="chat-actions">
+                    <button class="icon-btn" id="chatMenuBtn" onclick="showChatMenu()">⋮</button>
                 </div>
             </div>
             <div class="messages" id="messages" onclick="closeMessageMenu()"></div>
@@ -525,10 +485,8 @@
                     <button class="cancel-image" onclick="cancelImage()">✖️</button>
                 </div>
                 <div class="input-row">
-                    <div class="input-buttons">
-                        <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
-                        <button class="emoji-btn" onclick="document.getElementById('imageInput').click()">📷</button>
-                    </div>
+                    <button class="emoji-btn" onclick="toggleEmojiPicker()">😊</button>
+                    <button class="emoji-btn" onclick="document.getElementById('imageInput').click()">📷</button>
                     <input type="file" id="imageInput" accept="image/*" style="display: none;">
                     <input type="text" class="message-input" id="messageInput" placeholder="Сообщение..." onkeyup="onTyping()">
                     <button class="send-btn" id="sendBtn" onclick="sendMessage()">📤</button>
@@ -538,12 +496,18 @@
         </div>
     </div>
 
-    <!-- Меню сообщения -->
     <div id="messageMenu" class="message-menu">
         <button onclick="copyMessage()">📋 Копировать</button>
         <button id="editMsgBtn" onclick="editMessage()" style="display: none;">✏️ Изменить</button>
         <button id="pinMsgBtn" onclick="pinMessage()">📌 Закрепить</button>
         <button class="danger" onclick="deleteMessage()">🗑️ Удалить</button>
+    </div>
+
+    <div id="chatMenu" class="message-menu" style="min-width: 180px;">
+        <button onclick="clearChat()">🗑️ Очистить чат</button>
+        <button id="banUserBtn" onclick="banUser()" class="danger">🚫 Забанить</button>
+        <button id="deleteChatBtn" onclick="deleteChat()" class="danger">❌ Удалить чат</button>
+        <button id="pinChatBtn" onclick="pinChat()">📌 Закрепить чат</button>
     </div>
 
     <div class="modal" id="authModal">
@@ -557,7 +521,7 @@
             </div>
             <div id="registerForm" style="display: none;">
                 <input type="text" id="regName" placeholder="Отображаемое имя">
-                <input type="text" id="regUsername" placeholder="Username (латиница)">
+                <input type="text" id="regUsername" placeholder="Username">
                 <input type="email" id="regEmail" placeholder="Email">
                 <input type="password" id="regPassword" placeholder="Пароль">
                 <button class="btn btn-primary" onclick="register()">Зарегистрироваться</button>
@@ -580,24 +544,6 @@
         </div>
     </div>
 
-    <div class="modal" id="customNameModal">
-        <div class="modal-content">
-            <h2>Как назвать друга?</h2>
-            <input type="text" id="customNameInput" placeholder="Имя для друга">
-            <button class="btn btn-primary" onclick="saveCustomName()">Сохранить</button>
-            <button class="btn btn-secondary" onclick="closeCustomNameModal()">Отмена</button>
-        </div>
-    </div>
-
-    <div class="modal" id="editMessageModal">
-        <div class="modal-content">
-            <h2>Редактировать сообщение</h2>
-            <textarea id="editMessageText" rows="3" style="width:100%"></textarea>
-            <button class="btn btn-primary" onclick="saveEditedMessage()">Сохранить</button>
-            <button class="btn btn-secondary" onclick="closeEditModal()">Отмена</button>
-        </div>
-    </div>
-
     <div class="modal" id="createChannelModal">
         <div class="modal-content">
             <h2>Создать канал</h2>
@@ -608,18 +554,34 @@
         </div>
     </div>
 
+    <div class="modal" id="editMessageModal">
+        <div class="modal-content">
+            <h2>Редактировать сообщение</h2>
+            <textarea id="editMessageText" rows="3"></textarea>
+            <button class="btn btn-primary" onclick="saveEditedMessage()">Сохранить</button>
+            <button class="btn btn-secondary" onclick="closeEditModal()">Отмена</button>
+        </div>
+    </div>
+
+    <div class="modal" id="banModal">
+        <div class="modal-content">
+            <h2>Забанить пользователя</h2>
+            <input type="text" id="banReason" placeholder="Причина (необязательно)">
+            <button class="btn btn-primary" onclick="confirmBan()">Забанить</button>
+            <button class="btn btn-secondary" onclick="closeBanModal()">Отмена</button>
+        </div>
+    </div>
+
     <script type="module">
         import EmojiPicker from 'https://unpkg.com/emoji-picker-element@1.20.0/index.js';
         const picker = new EmojiPicker();
         picker.addEventListener('emoji-click', event => {
-            const input = document.getElementById('messageInput');
-            input.value += event.detail.unicode;
-            input.focus();
+            document.getElementById('messageInput').value += event.detail.unicode;
+            document.getElementById('messageInput').focus();
         });
         document.getElementById('emojiPickerContainer').appendChild(picker);
         window.toggleEmojiPicker = () => {
-            const container = document.getElementById('emojiPickerContainer');
-            container.classList.toggle('show');
+            document.getElementById('emojiPickerContainer').classList.toggle('show');
         };
     </script>
 
@@ -628,26 +590,21 @@
         let currentUser = null;
         let users = [];
         let messages = [];
-        let currentChat = null;
+        let channels = [];
+        let currentChat = null; // { type: 'user', id } или { type: 'channel', id, name }
         let currentTab = 'chats';
         let userStatuses = {};
         let pollInterval = null;
         let selectedImageFile = null;
         let typingTimeout = null;
-        let currentMessageMenu = null;
         let currentMessageId = null;
         let currentMessageIsOwn = false;
         let pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + (currentUser?.userid || '')) || '[]');
+        let pinnedChats = JSON.parse(localStorage.getItem('pinnedChats_' + (currentUser?.userid || '')) || '[]');
 
-        // Стартовый экран 5 сек
         setTimeout(() => {
             const splash = document.getElementById('splash');
-            if (splash) {
-                splash.classList.add('hide');
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                }, 600);
-            }
+            if (splash) { splash.classList.add('hide'); setTimeout(() => splash.style.display = 'none', 600); }
         }, 5000);
 
         async function apiRequest(endpoint, method = 'GET', data = null) {
@@ -660,70 +617,50 @@
             return json;
         }
 
-        // Статус печатает
         window.onTyping = () => {
-            if (!currentChat || currentChat.isSelf) return;
+            if (!currentChat || currentChat.type !== 'user') return;
             if (typingTimeout) clearTimeout(typingTimeout);
-            fetch(`${API}/typing/${currentChat.userid}`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }).catch(e=>console.log);
+            fetch(`${API}/typing/${currentChat.id}`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }).catch(e=>console.log);
             typingTimeout = setTimeout(() => {
-                fetch(`${API}/typing/stop/${currentChat.userid}`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }).catch(e=>console.log);
+                fetch(`${API}/typing/stop/${currentChat.id}`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }).catch(e=>console.log);
             }, 2000);
         };
 
-        // Получение статуса печатает (имитация через polling)
         let lastTyping = {};
         function checkTyping() {
-            if (!currentChat || currentChat.isSelf) {
-                document.getElementById('typingStatus').style.display = 'none';
-                return;
-            }
+            if (!currentChat || currentChat.type !== 'user') { document.getElementById('typingStatus').style.display = 'none'; return; }
             const now = Date.now();
-            const isTyping = lastTyping[currentChat.userid] && (now - lastTyping[currentChat.userid] < 3000);
+            const isTyping = lastTyping[currentChat.id] && (now - lastTyping[currentChat.id] < 3000);
             document.getElementById('typingStatus').style.display = isTyping ? 'block' : 'none';
         }
         setInterval(checkTyping, 1000);
 
-        // Меню сообщения
         window.showMessageMenu = (event, msgId, isOwn, text, isPinned) => {
             event.stopPropagation();
             currentMessageId = msgId;
             currentMessageIsOwn = isOwn;
             const menu = document.getElementById('messageMenu');
-            const editBtn = document.getElementById('editMsgBtn');
-            const pinBtn = document.getElementById('pinMsgBtn');
-            editBtn.style.display = isOwn ? 'block' : 'none';
-            pinBtn.innerHTML = isPinned ? '📌 Открепить' : '📌 Закрепить';
+            document.getElementById('editMsgBtn').style.display = isOwn ? 'block' : 'none';
+            document.getElementById('pinMsgBtn').innerHTML = isPinned ? '📌 Открепить' : '📌 Закрепить';
             menu.style.display = 'block';
             menu.style.left = event.clientX + 'px';
             menu.style.top = event.clientY + 'px';
-            setTimeout(() => {
-                document.addEventListener('click', closeMessageMenu);
-            }, 100);
+            setTimeout(() => document.addEventListener('click', closeMessageMenu), 100);
         };
-
         window.closeMessageMenu = () => {
             document.getElementById('messageMenu').style.display = 'none';
             document.removeEventListener('click', closeMessageMenu);
         };
-
         window.copyMessage = () => {
             const msg = messages.find(m => m.id == currentMessageId);
-            if (msg) {
-                navigator.clipboard.writeText(msg.text || (msg.image ? '📷 Фото' : ''));
-                alert('Скопировано');
-            }
+            if (msg) { navigator.clipboard.writeText(msg.text || (msg.image ? '📷 Фото' : '')); alert('Скопировано'); }
             closeMessageMenu();
         };
-
         window.editMessage = () => {
             const msg = messages.find(m => m.id == currentMessageId);
-            if (msg) {
-                document.getElementById('editMessageText').value = msg.text || '';
-                document.getElementById('editMessageModal').classList.add('active');
-            }
+            if (msg) { document.getElementById('editMessageText').value = msg.text || ''; document.getElementById('editMessageModal').classList.add('active'); }
             closeMessageMenu();
         };
-
         window.saveEditedMessage = async () => {
             const newText = document.getElementById('editMessageText').value;
             if (!newText) return;
@@ -734,22 +671,14 @@
                 closeEditModal();
             } catch(e) { alert(e.message); }
         };
-
         window.pinMessage = () => {
-            const msg = messages.find(m => m.id == currentMessageId);
-            if (msg) {
-                const index = pinnedMessages.indexOf(currentMessageId);
-                if (index === -1) {
-                    pinnedMessages.push(currentMessageId);
-                } else {
-                    pinnedMessages.splice(index, 1);
-                }
-                localStorage.setItem('pinned_' + currentUser.userid, JSON.stringify(pinnedMessages));
-                renderMessages();
-            }
+            const index = pinnedMessages.indexOf(currentMessageId);
+            if (index === -1) pinnedMessages.push(currentMessageId);
+            else pinnedMessages.splice(index, 1);
+            localStorage.setItem('pinned_' + currentUser.userid, JSON.stringify(pinnedMessages));
+            renderMessages();
             closeMessageMenu();
         };
-
         window.deleteMessage = async () => {
             if (confirm('Удалить сообщение?')) {
                 try {
@@ -761,13 +690,62 @@
             closeMessageMenu();
         };
 
-        // Каналы
-        window.openChannelModal = () => {
-            document.getElementById('createChannelModal').classList.add('active');
+        window.showChatMenu = () => {
+            const menu = document.getElementById('chatMenu');
+            const isUser = currentChat?.type === 'user';
+            document.getElementById('banUserBtn').style.display = isUser ? 'block' : 'none';
+            document.getElementById('deleteChatBtn').style.display = isUser ? 'block' : 'none';
+            const isPinned = pinnedChats.includes(currentChat?.type === 'user' ? `user_${currentChat.id}` : `channel_${currentChat.id}`);
+            document.getElementById('pinChatBtn').innerHTML = isPinned ? '📌 Открепить чат' : '📌 Закрепить чат';
+            menu.style.display = 'block';
+            menu.style.right = '20px';
+            menu.style.top = '70px';
+            setTimeout(() => document.addEventListener('click', () => menu.style.display = 'none'), 100);
         };
-        window.closeChannelModal = () => {
-            document.getElementById('createChannelModal').classList.remove('active');
+        window.clearChat = async () => {
+            if (confirm('Очистить все сообщения в этом чате?')) {
+                try {
+                    await apiRequest(`/messages/clear/${currentChat.id}`, 'DELETE');
+                    await loadData();
+                    renderMessages();
+                } catch(e) { alert(e.message); }
+            }
+            document.getElementById('chatMenu').style.display = 'none';
         };
+        window.banUser = () => {
+            document.getElementById('banModal').classList.add('active');
+            document.getElementById('chatMenu').style.display = 'none';
+        };
+        window.confirmBan = async () => {
+            const reason = document.getElementById('banReason').value;
+            try {
+                await apiRequest('/bans', 'POST', { userId: currentChat.id, reason });
+                alert('Пользователь забанен');
+                closeBanModal();
+            } catch(e) { alert(e.message); }
+        };
+        window.deleteChat = async () => {
+            if (confirm('Удалить чат? Все сообщения будут удалены.')) {
+                await clearChat();
+                currentChat = null;
+                document.getElementById('chatHeader').style.display = 'none';
+                document.getElementById('inputArea').style.display = 'none';
+                await loadData();
+                renderCurrentList();
+            }
+        };
+        window.pinChat = () => {
+            const id = currentChat.type === 'user' ? `user_${currentChat.id}` : `channel_${currentChat.id}`;
+            const index = pinnedChats.indexOf(id);
+            if (index === -1) pinnedChats.push(id);
+            else pinnedChats.splice(index, 1);
+            localStorage.setItem('pinnedChats_' + currentUser.userid, JSON.stringify(pinnedChats));
+            renderCurrentList();
+            document.getElementById('chatMenu').style.display = 'none';
+        };
+
+        window.openChannelModal = () => { document.getElementById('createChannelModal').classList.add('active'); };
+        window.closeChannelModal = () => { document.getElementById('createChannelModal').classList.remove('active'); };
         window.createChannel = async () => {
             const name = document.getElementById('channelName').value;
             const description = document.getElementById('channelDesc').value;
@@ -779,25 +757,21 @@
                 await loadData();
             } catch(e) { alert(e.message); }
         };
-        window.closeEditModal = () => {
-            document.getElementById('editMessageModal').classList.remove('active');
-        };
+        window.closeEditModal = () => { document.getElementById('editMessageModal').classList.remove('active'); };
+        window.closeBanModal = () => { document.getElementById('banModal').classList.remove('active'); };
 
-        // Остальной код (аналогичный предыдущему, с добавлением pinned)
         document.getElementById('imageInput').addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 selectedImageFile = file;
                 const reader = new FileReader();
                 reader.onload = (ev) => {
-                    const preview = document.getElementById('imagePreview');
-                    preview.src = ev.target.result;
+                    document.getElementById('imagePreview').src = ev.target.result;
                     document.getElementById('imagePreviewContainer').style.display = 'flex';
                 };
                 reader.readAsDataURL(file);
             }
         });
-
         window.cancelImage = () => {
             selectedImageFile = null;
             document.getElementById('imageInput').value = '';
@@ -809,7 +783,6 @@
             const file = selectedImageFile;
             if (!text && !file) return;
             if (!currentChat) return;
-            const toId = currentChat.isSelf ? currentUser.userid : currentChat.userid;
             const sendBtn = document.getElementById('sendBtn');
             const originalText = sendBtn.innerHTML;
             sendBtn.innerHTML = '⏳';
@@ -817,19 +790,22 @@
             try {
                 let imageData = null;
                 if (file) {
-                    imageData = await new Promise((resolve) => {
-                        const reader = new FileReader();
-                        reader.onload = (e) => resolve(e.target.result);
-                        reader.readAsDataURL(file);
-                    });
+                    imageData = await new Promise(resolve => { const reader = new FileReader(); reader.onload = e => resolve(e.target.result); reader.readAsDataURL(file); });
                 }
-                const msg = await apiRequest('/messages', 'POST', { to: toId, text: text || (file ? '' : ''), image: imageData });
-                messages.push(msg);
+                let endpoint, body;
+                if (currentChat.type === 'user') {
+                    endpoint = '/messages';
+                    body = { to: currentChat.id, text: text || '', image: imageData };
+                } else {
+                    endpoint = `/channels/${currentChat.id}/messages`;
+                    body = { text: text || '', image: imageData };
+                }
+                await apiRequest(endpoint, 'POST', body);
                 document.getElementById('messageInput').value = '';
                 cancelImage();
+                await loadData();
                 renderMessages();
                 renderCurrentList();
-                await loadData();
             } catch(e) { alert(e.message); } finally {
                 sendBtn.innerHTML = originalText;
                 sendBtn.disabled = false;
@@ -838,14 +814,11 @@
 
         window.login = async () => {
             try {
-                const data = await apiRequest('/auth/login', 'POST', {
-                    email: document.getElementById('loginEmail').value,
-                    password: document.getElementById('loginPassword').value
-                });
-                currentUser = data.user;
-                currentUser.token = data.token;
+                const data = await apiRequest('/auth/login', 'POST', { email: document.getElementById('loginEmail').value, password: document.getElementById('loginPassword').value });
+                currentUser = data.user; currentUser.token = data.token;
                 localStorage.setItem('vexa_user', JSON.stringify(currentUser));
                 pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + currentUser.userid) || '[]');
+                pinnedChats = JSON.parse(localStorage.getItem('pinnedChats_' + currentUser.userid) || '[]');
                 document.getElementById('authModal').classList.remove('active');
                 document.getElementById('app').style.display = 'flex';
                 setTimeout(() => document.getElementById('app').classList.add('visible'), 50);
@@ -854,19 +827,12 @@
                 updateUI();
             } catch(e) { document.getElementById('authError').innerText = e.message; }
         };
-
         window.register = async () => {
             try {
-                const data = await apiRequest('/auth/register', 'POST', {
-                    displayName: document.getElementById('regName').value,
-                    username: document.getElementById('regUsername').value,
-                    email: document.getElementById('regEmail').value,
-                    password: document.getElementById('regPassword').value
-                });
-                currentUser = data.user;
-                currentUser.token = data.token;
+                const data = await apiRequest('/auth/register', 'POST', { displayName: document.getElementById('regName').value, username: document.getElementById('regUsername').value, email: document.getElementById('regEmail').value, password: document.getElementById('regPassword').value });
+                currentUser = data.user; currentUser.token = data.token;
                 localStorage.setItem('vexa_user', JSON.stringify(currentUser));
-                pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + currentUser.userid) || '[]');
+                pinnedMessages = []; pinnedChats = [];
                 document.getElementById('authModal').classList.remove('active');
                 document.getElementById('app').style.display = 'flex';
                 setTimeout(() => document.getElementById('app').classList.add('visible'), 50);
@@ -875,23 +841,15 @@
                 updateUI();
             } catch(e) { document.getElementById('authError').innerText = e.message; }
         };
-
-        window.showRegister = () => {
-            document.getElementById('loginForm').style.display = 'none';
-            document.getElementById('registerForm').style.display = 'block';
-            document.getElementById('authTitle').innerText = 'Регистрация';
-        };
-        window.showLogin = () => {
-            document.getElementById('loginForm').style.display = 'block';
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('authTitle').innerText = 'Вход в Vexa';
-        };
+        window.showRegister = () => { document.getElementById('loginForm').style.display = 'none'; document.getElementById('registerForm').style.display = 'block'; document.getElementById('authTitle').innerText = 'Регистрация'; };
+        window.showLogin = () => { document.getElementById('loginForm').style.display = 'block'; document.getElementById('registerForm').style.display = 'none'; document.getElementById('authTitle').innerText = 'Вход в Vexa'; };
 
         async function loadData() {
             if (!currentUser) return;
             try {
                 users = await apiRequest('/users');
                 messages = await apiRequest('/messages');
+                channels = await apiRequest('/channels');
                 const statusData = await apiRequest('/status');
                 userStatuses = {};
                 statusData.forEach(u => { userStatuses[u.userid] = { isOnline: u.isonline, lastSeen: u.lastseen }; });
@@ -902,13 +860,8 @@
 
         function updateUI() {
             const avatarEl = document.getElementById('avatar');
-            if (currentUser.avatar) {
-                avatarEl.style.backgroundImage = `url(${currentUser.avatar})`;
-                avatarEl.innerText = '';
-            } else {
-                avatarEl.style.backgroundImage = '';
-                avatarEl.innerText = (currentUser.displayname || 'U').charAt(0).toUpperCase();
-            }
+            if (currentUser.avatar) { avatarEl.style.backgroundImage = `url(${currentUser.avatar})`; avatarEl.innerText = ''; }
+            else { avatarEl.style.backgroundImage = ''; avatarEl.innerText = (currentUser.displayname || 'U').charAt(0).toUpperCase(); }
             document.getElementById('displayName').innerText = currentUser.displayname;
             document.getElementById('username').innerText = `@${currentUser.username}`;
         }
@@ -922,20 +875,10 @@
             else preview.style.backgroundImage = '';
             document.getElementById('profileModal').classList.add('active');
         };
-        window.closeProfileModal = () => {
-            document.getElementById('profileModal').classList.remove('active');
-            window.newAvatar = null;
-        };
+        window.closeProfileModal = () => { document.getElementById('profileModal').classList.remove('active'); window.newAvatar = null; };
         window.previewAvatar = (input) => {
             const file = input.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('avatarPreview').style.backgroundImage = `url(${e.target.result})`;
-                    window.newAvatar = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            }
+            if (file) { const reader = new FileReader(); reader.onload = (e) => { document.getElementById('avatarPreview').style.backgroundImage = `url(${e.target.result})`; window.newAvatar = e.target.result; }; reader.readAsDataURL(file); }
         };
         window.saveProfile = async () => {
             const displayName = document.getElementById('editName').value;
@@ -953,48 +896,7 @@
             } catch(e) { alert(e.message); }
         };
 
-        function isFriend(userId) {
-            return currentUser.friends?.includes(userId) || false;
-        }
-        window.toggleFriend = async () => {
-            if (!currentChat) return;
-            const action = isFriend(currentChat.userid) ? 'remove' : 'add';
-            try {
-                await apiRequest('/users/friends', 'POST', { friendId: currentChat.userid, action });
-                await loadData();
-                updateFriendButtons();
-            } catch(e) { alert(e.message); }
-        };
-        function updateFriendButtons() {
-            if (!currentChat) return;
-            const isF = isFriend(currentChat.userid);
-            document.getElementById('addFriendBtn').style.display = isF ? 'none' : 'inline-block';
-            document.getElementById('removeFriendBtn').style.display = isF ? 'inline-block' : 'none';
-        }
-
-        window.openCustomNameModal = () => {
-            const name = currentUser.customnames?.[currentChat?.userid] || '';
-            document.getElementById('customNameInput').value = name;
-            document.getElementById('customNameModal').classList.add('active');
-        };
-        window.closeCustomNameModal = () => {
-            document.getElementById('customNameModal').classList.remove('active');
-        };
-        window.saveCustomName = async () => {
-            const customName = document.getElementById('customNameInput').value;
-            try {
-                await apiRequest('/users/custom-name', 'POST', { friendId: currentChat.userid, customName });
-                await loadData();
-                closeCustomNameModal();
-                renderCurrentList();
-                updateChatHeader();
-            } catch(e) { alert(e.message); }
-        };
-
-        function getDisplayName(user) {
-            if (user.userid === currentUser.userid) return user.displayname;
-            return currentUser.customnames?.[user.userid] || user.displayname;
-        }
+        function getDisplayName(user) { return user.displayname; }
 
         function getChats() {
             const userMessages = messages.filter(m => m.from === currentUser.userid || m.to === currentUser.userid);
@@ -1003,26 +905,34 @@
                 if (msg.from === currentUser.userid) chatUsers.add(msg.to);
                 else chatUsers.add(msg.from);
             });
-            chatUsers.add(currentUser.userid);
-            return Array.from(chatUsers).map(userId => {
+            const chatsList = Array.from(chatUsers).map(userId => {
                 const user = users.find(u => u.userid === userId);
-                if (!user && userId !== currentUser.userid) return null;
-                const isSelf = userId === currentUser.userid;
-                const displayUser = isSelf ? { ...currentUser, displayname: '📝 Заметки', username: 'saved' } : user;
+                if (!user) return null;
                 const lastMessage = userMessages.filter(m => (m.from === userId && m.to === currentUser.userid) || (m.to === userId && m.from === currentUser.userid))
                     .sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
                 const unreadCount = messages.filter(m => m.from === userId && m.to === currentUser.userid && !m.isRead).length;
-                return { user: displayUser, lastMessage, unreadCount, isSelf };
+                return { type: 'user', id: user.userid, name: user.displayname, avatar: user.avatar, lastMessage, unreadCount };
             }).filter(c => c);
-        }
-
-        function getFriends() {
-            return (currentUser.friends || []).map(fid => users.find(u => u.userid === fid)).filter(u => u);
+            
+            const channelChats = channels.map(ch => ({
+                type: 'channel', id: ch.id, name: ch.name, avatar: ch.avatar, lastMessage: null, unreadCount: 0
+            }));
+            
+            let all = [...chatsList, ...channelChats];
+            all.sort((a,b) => {
+                const aPinned = pinnedChats.includes(`${a.type}_${a.id}`);
+                const bPinned = pinnedChats.includes(`${b.type}_${b.id}`);
+                if (aPinned !== bPinned) return aPinned ? -1 : 1;
+                const aTime = a.lastMessage ? new Date(a.lastMessage.createdAt) : 0;
+                const bTime = b.lastMessage ? new Date(b.lastMessage.createdAt) : 0;
+                return bTime - aTime;
+            });
+            return all;
         }
 
         function renderCurrentList() {
             if (currentTab === 'chats') renderChats();
-            else renderFriendsList();
+            else renderChannels();
         }
 
         function renderChats() {
@@ -1033,24 +943,22 @@
                 return;
             }
             container.innerHTML = chats.map(chat => {
-                const isActive = currentChat && ((chat.isSelf && currentChat.userid === currentUser.userid) || (!chat.isSelf && currentChat?.userid === chat.user.userid));
-                const avatarUrl = chat.user.avatar;
-                const status = userStatuses[chat.user.userid];
+                const isActive = currentChat && currentChat.type === chat.type && currentChat.id === chat.id;
+                const status = chat.type === 'user' ? userStatuses[chat.id] : null;
                 const isOnline = status?.isOnline;
-                const displayName = chat.isSelf ? '📝 Заметки' : getDisplayName(chat.user);
                 let lastMessageText = 'Нет сообщений';
                 if (chat.lastMessage) {
                     if (chat.lastMessage.image) lastMessageText = '📷 Фото';
                     else lastMessageText = escapeHtml(chat.lastMessage.text);
                 }
                 return `
-                    <div class="chat-item ${isActive ? 'active' : ''}" onclick="selectChat('${chat.user.userid}', ${chat.isSelf})">
-                        <div class="chat-avatar" style="${avatarUrl ? `background-image: url(${avatarUrl});` : ''}">
-                            ${!avatarUrl ? (displayName.charAt(0) || 'U') : ''}
-                            ${isOnline && !chat.isSelf ? '<div class="online-dot"></div>' : ''}
+                    <div class="chat-item ${isActive ? 'active' : ''}" onclick="selectChat('${chat.type}', '${chat.id}', '${escapeHtml(chat.name)}')">
+                        <div class="chat-avatar" style="${chat.avatar ? `background-image: url(${chat.avatar});` : ''}">
+                            ${!chat.avatar ? (chat.name.charAt(0) || 'U') : ''}
+                            ${isOnline ? '<div class="online-dot"></div>' : ''}
                         </div>
                         <div class="chat-info">
-                            <div class="chat-name">${escapeHtml(displayName)}</div>
+                            <div class="chat-name">${escapeHtml(chat.name)}</div>
                             <div class="chat-last">${lastMessageText}</div>
                         </div>
                         <div>
@@ -1063,123 +971,88 @@
             container.innerHTML += '<div style="padding:12px;text-align:center;"><button onclick="openChannelModal()" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
         }
 
-        function renderFriendsList() {
-            const friends = getFriends();
+        function renderChannels() {
             const container = document.getElementById('chatsList');
-            if (!friends.length) {
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">👥 Нет друзей<br>Найдите и добавьте</div>';
+            if (!channels.length) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">Нет каналов<br><button onclick="openChannelModal()" style="margin-top:10px;padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
                 return;
             }
-            container.innerHTML = friends.map(friend => {
-                const status = userStatuses[friend.userid];
-                const isOnline = status?.isOnline;
-                return `
-                    <div class="chat-item" onclick="selectChat('${friend.userid}', false)">
-                        <div class="chat-avatar" style="${friend.avatar ? `background-image: url(${friend.avatar});` : ''}">
-                            ${!friend.avatar ? (friend.displayname.charAt(0) || 'U') : ''}
-                            ${isOnline ? '<div class="online-dot"></div>' : ''}
-                        </div>
-                        <div class="chat-info">
-                            <div class="chat-name">${escapeHtml(getDisplayName(friend))}</div>
-                            <div class="chat-last">@${escapeHtml(friend.username)}</div>
-                        </div>
-                        <button class="friend-btn remove" onclick="event.stopPropagation(); removeFriend('${friend.userid}')" style="padding:4px 8px;">➖</button>
+            container.innerHTML = channels.map(ch => `
+                <div class="chat-item" onclick="selectChat('channel', '${ch.id}', '${escapeHtml(ch.name)}')">
+                    <div class="chat-avatar" style="${ch.avatar ? `background-image: url(${ch.avatar});` : ''}">
+                        ${!ch.avatar ? (ch.name.charAt(0) || 'U') : ''}
                     </div>
-                `;
-            }).join('');
+                    <div class="chat-info">
+                        <div class="chat-name">📢 ${escapeHtml(ch.name)}</div>
+                        <div class="chat-last">${escapeHtml(ch.description || 'Нет описания')}</div>
+                    </div>
+                </div>
+            `).join('');
+            container.innerHTML += '<div style="padding:12px;text-align:center;"><button onclick="openChannelModal()" style="padding:8px 16px;background:#667eea;color:white;border:none;border-radius:20px;">📢 Создать канал</button></div>';
         }
 
-        window.removeFriend = async (userId) => {
-            try {
-                await apiRequest('/users/friends', 'POST', { friendId: userId, action: 'remove' });
-                await loadData();
-            } catch(e) { alert(e.message); }
-        };
-
-        window.selectChat = (userId, isSelf = false) => {
-            if (isSelf || userId === currentUser.userid) {
-                currentChat = { userid: currentUser.userid, displayname: '📝 Заметки', username: 'saved', avatar: null, isSelf: true };
-            } else {
-                currentChat = users.find(u => u.userid === userId);
-                if (!currentChat) return;
-                currentChat.isSelf = false;
-            }
+        window.selectChat = (type, id, name) => {
+            currentChat = { type, id, name };
             renderMessages();
             renderCurrentList();
             document.getElementById('chatHeader').style.display = 'flex';
             document.getElementById('inputArea').style.display = 'flex';
-            updateChatHeader();
-            updateFriendButtons();
-            document.getElementById('friendActions').style.display = currentChat.isSelf ? 'none' : 'flex';
-            markMessagesAsRead(userId);
-        };
-
-        function updateChatHeader() {
-            const isSelf = currentChat.isSelf || currentChat.userid === currentUser.userid;
-            const displayName = isSelf ? '📝 Заметки' : getDisplayName(currentChat);
             const avatarEl = document.getElementById('chatAvatar');
-            if (currentChat.avatar) {
-                avatarEl.style.backgroundImage = `url(${currentChat.avatar})`;
-                avatarEl.innerText = '';
-            } else {
-                avatarEl.style.backgroundImage = '';
-                avatarEl.innerText = displayName.charAt(0).toUpperCase();
-            }
-            document.getElementById('chatName').innerText = displayName;
-            document.getElementById('chatUsername').innerHTML = isSelf ? 'Ваши личные заметки' : `@${currentChat.username}`;
-        }
+            const user = type === 'user' ? users.find(u => u.userid === id) : null;
+            if (type === 'user' && user?.avatar) { avatarEl.style.backgroundImage = `url(${user.avatar})`; avatarEl.innerText = ''; }
+            else { avatarEl.style.backgroundImage = ''; avatarEl.innerText = name.charAt(0).toUpperCase(); }
+            document.getElementById('chatName').innerText = name;
+            document.getElementById('chatUsername').innerHTML = type === 'user' ? `@${user?.username || ''}` : 'Канал';
+            if (type === 'user') markMessagesAsRead(id);
+        };
 
         async function markMessagesAsRead(fromId) {
             try {
                 await apiRequest('/messages/read', 'POST', { from: fromId });
                 await loadData();
-                if (currentChat && (currentChat.userid === fromId || (fromId === currentUser.userid && currentChat.isSelf))) {
-                    renderMessages();
-                }
+                if (currentChat && currentChat.type === 'user' && currentChat.id === fromId) renderMessages();
             } catch(e) {}
         }
 
-        function renderMessages() {
+        async function renderMessages() {
             if (!currentChat) return;
-            const isSelfChat = currentChat.isSelf || currentChat.userid === currentUser.userid;
-            let chatMessages = messages.filter(m => 
-                (m.from === currentUser.userid && m.to === (isSelfChat ? currentUser.userid : currentChat.userid)) ||
-                (m.to === currentUser.userid && m.from === (isSelfChat ? currentUser.userid : currentChat.userid))
-            ).sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+            let chatMessages = [];
+            if (currentChat.type === 'user') {
+                chatMessages = messages.filter(m => 
+                    (m.from === currentUser.userid && m.to === currentChat.id) ||
+                    (m.to === currentUser.userid && m.from === currentChat.id)
+                ).sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt));
+            } else {
+                const channelMsgs = await apiRequest(`/channels/${currentChat.id}/messages`);
+                chatMessages = channelMsgs.sort((a,b) => new Date(a.createdat) - new Date(b.createdat));
+            }
             
-            // Закреплённые сверху
             const pinned = chatMessages.filter(m => pinnedMessages.includes(m.id));
             const unpinned = chatMessages.filter(m => !pinnedMessages.includes(m.id));
             chatMessages = [...pinned, ...unpinned];
 
             const container = document.getElementById('messages');
             if (!chatMessages.length) {
-                container.innerHTML = `<div style="text-align:center;color:#999;margin-top:50px;">${isSelfChat ? '📝 Пишите заметки' : '💬 Напишите первое сообщение'}</div>`;
+                container.innerHTML = `<div style="text-align:center;color:#999;margin-top:50px;">💬 Напишите первое сообщение</div>`;
                 return;
             }
             
-            const oldCount = container.children.length;
-            
-            container.innerHTML = chatMessages.map((msg, index) => {
+            container.innerHTML = chatMessages.map(msg => {
                 const hasImage = msg.image && msg.image.startsWith('data:image');
                 const displayText = msg.text && msg.text !== '📷 Фото' && msg.text !== '📷 Изображение' ? escapeHtml(msg.text) : '';
                 const isOwn = msg.from === currentUser.userid;
-                const isNew = index >= oldCount;
-                const animationClass = isNew ? (isOwn ? 'animate-sent' : 'animate-received') : '';
                 const isPinned = pinnedMessages.includes(msg.id);
-                
                 return `
-                    <div class="message ${isOwn ? 'sent' : 'received'} ${animationClass}" onclick="showMessageMenu(event, ${msg.id}, ${isOwn}, '${escapeHtml(msg.text || '').replace(/'/g, "\\'")}', ${isPinned})">
+                    <div class="message ${isOwn ? 'sent' : 'received'}" onclick="showMessageMenu(event, ${msg.id}, ${isOwn}, '${escapeHtml(msg.text || '').replace(/'/g, "\\'")}', ${isPinned})">
                         <div class="message-bubble">
                             ${isPinned ? '📌 ' : ''}
                             ${displayText ? `<div class="message-text">${displayText}</div>` : ''}
                             ${hasImage ? `<img src="${msg.image}" class="message-image" onclick="event.stopPropagation();window.open('${msg.image}')" loading="lazy">` : ''}
-                            <div class="message-time">${formatTime(msg.createdAt)}</div>
+                            <div class="message-time">${formatTime(msg.createdAt || msg.createdat)}</div>
                         </div>
                     </div>
                 `;
             }).join('');
-            
             container.scrollTop = container.scrollHeight;
         }
 
@@ -1189,12 +1062,7 @@
             return (now - date < 86400000) ? date.toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'}) : date.toLocaleDateString('ru-RU');
         }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+        function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
 
         function startPolling() {
             if (pollInterval) clearInterval(pollInterval);
@@ -1214,7 +1082,7 @@
             if (results.length) {
                 resultsDiv.style.display = 'block';
                 resultsDiv.innerHTML = results.map(u => `
-                    <div class="search-result" onclick="selectChat('${u.userid}', false); document.getElementById('searchInput').value=''; resultsDiv.style.display='none';">
+                    <div class="search-result" onclick="selectChat('user', '${u.userid}', '${escapeHtml(u.displayname)}'); document.getElementById('searchInput').value=''; resultsDiv.style.display='none';">
                         <div class="chat-avatar" style="${u.avatar ? `background-image: url(${u.avatar});` : ''} width:40px;height:40px;">${!u.avatar ? u.displayname.charAt(0) : ''}</div>
                         <div><strong>${escapeHtml(u.displayname)}</strong><br><small>@${escapeHtml(u.username)}</small></div>
                     </div>
@@ -1228,7 +1096,7 @@
         window.switchTab = (tab) => {
             currentTab = tab;
             document.querySelectorAll('.tab').forEach((t, i) => {
-                if ((tab === 'chats' && i === 0) || (tab === 'friends' && i === 1)) t.classList.add('active');
+                if ((tab === 'chats' && i === 0) || (tab === 'channels' && i === 1)) t.classList.add('active');
                 else t.classList.remove('active');
             });
             renderCurrentList();
@@ -1239,35 +1107,20 @@
             try {
                 currentUser = JSON.parse(saved);
                 pinnedMessages = JSON.parse(localStorage.getItem('pinned_' + currentUser.userid) || '[]');
+                pinnedChats = JSON.parse(localStorage.getItem('pinnedChats_' + currentUser.userid) || '[]');
                 apiRequest('/users').then(() => {
                     document.getElementById('authModal').classList.remove('active');
                     document.getElementById('app').style.display = 'flex';
                     setTimeout(() => document.getElementById('app').classList.add('visible'), 50);
                     loadData().then(() => { updateUI(); startPolling(); });
-                }).catch(() => {
-                    localStorage.removeItem('vexa_user');
-                    document.getElementById('authModal').classList.add('active');
-                });
-            } catch(e) {
-                localStorage.removeItem('vexa_user');
-                document.getElementById('authModal').classList.add('active');
-            }
-        } else {
-            document.getElementById('authModal').classList.add('active');
-        }
+                }).catch(() => { localStorage.removeItem('vexa_user'); document.getElementById('authModal').classList.add('active'); });
+            } catch(e) { localStorage.removeItem('vexa_user'); document.getElementById('authModal').classList.add('active'); }
+        } else { document.getElementById('authModal').classList.add('active'); }
 
         let searchTimeout;
-        document.getElementById('searchInput').addEventListener('input', () => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(searchUsers, 300);
-        });
+        document.getElementById('searchInput').addEventListener('input', () => { clearTimeout(searchTimeout); searchTimeout = setTimeout(searchUsers, 300); });
         document.getElementById('messageInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
-
-        window.addEventListener('beforeunload', async () => {
-            if (currentUser) {
-                await fetch(`${API}/auth/logout`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } });
-            }
-        });
+        window.addEventListener('beforeunload', async () => { if (currentUser) { await fetch(`${API}/auth/logout`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentUser.token}` } }); } });
     </script>
 </body>
 </html>
